@@ -1,6 +1,6 @@
 use crate::token::{Burn, Instantiate, IsNative, Mint, Transfer};
 use crate::utils::unwrap_reply;
-use crate::CwAssetError;
+use crate::CwTokenError;
 use apollo_proto_rust::cosmos::base::v1beta1::Coin as CoinMsg;
 use apollo_proto_rust::osmosis::tokenfactory::v1beta1::{MsgBurn, MsgCreateDenom, MsgMint};
 use apollo_proto_rust::utils::encode;
@@ -150,7 +150,7 @@ impl Instantiate<OsmosisDenom> for OsmosisDenomInstantiator {
         _api: &dyn Api,
         reply: &Reply,
         item: Item<OsmosisDenom>,
-    ) -> Result<Response, CwAssetError> {
+    ) -> Result<Response, CwTokenError> {
         match reply.id {
             REPLY_SAVE_OSMOSIS_DENOM => {
                 let res = unwrap_reply(reply)?;
@@ -163,7 +163,7 @@ impl Instantiate<OsmosisDenom> for OsmosisDenomInstantiator {
                     .add_attribute("action", "save_osmosis_denom")
                     .add_attribute("denom", &denom))
             }
-            _ => Err(CwAssetError::InvalidReplyId {}),
+            _ => Err(CwTokenError::InvalidReplyId {}),
         }
     }
 }

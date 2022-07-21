@@ -2,7 +2,7 @@ use cosmwasm_std::{Api, Binary, Reply, Response, StdResult, Storage, SubMsg, Uin
 use cw_storage_plus::Item;
 use serde::{de::DeserializeOwned, Serialize};
 
-use crate::CwAssetError;
+use crate::CwTokenError;
 pub trait Instantiate<A: Serialize + DeserializeOwned>: Sized {
     fn instantiate_msg(&self) -> StdResult<SubMsg>;
 
@@ -11,7 +11,7 @@ pub trait Instantiate<A: Serialize + DeserializeOwned>: Sized {
         api: &dyn Api,
         reply: &Reply,
         item: Item<A>,
-    ) -> Result<Response, CwAssetError>;
+    ) -> Result<Response, CwTokenError>;
 }
 
 pub trait Send {

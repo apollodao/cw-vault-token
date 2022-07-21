@@ -13,7 +13,7 @@ use std::{convert::TryFrom, fmt::Display};
 use crate::{
     token::{Burn, Instantiate, IsNative, Mint, Transfer},
     utils::unwrap_reply,
-    CwAssetError,
+    CwTokenError,
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -170,7 +170,7 @@ impl Instantiate<Cw20> for Cw20Instantiator {
         api: &dyn Api,
         reply: &Reply,
         item: Item<Cw20>,
-    ) -> Result<Response, CwAssetError> {
+    ) -> Result<Response, CwTokenError> {
         match reply.id {
             REPLY_SAVE_CW20_ADDRESS => {
                 let res = unwrap_reply(reply)?;
@@ -182,7 +182,7 @@ impl Instantiate<Cw20> for Cw20Instantiator {
                     .add_attribute("action", "save_osmosis_denom")
                     .add_attribute("addr", &addr))
             }
-            _ => Err(CwAssetError::InvalidReplyId {}),
+            _ => Err(CwTokenError::InvalidReplyId {}),
         }
     }
 }
