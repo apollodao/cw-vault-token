@@ -8,7 +8,7 @@ repository = "https://github.com/apollodao/cw-token"
 
 
 [dependencies]
-apollo-proto-rust = { rev = "7ff193c00fb63357d686c859eac89b40667050b5", git = "https://github.com/apollodao/apollo-proto-rust" }
+apollo-proto-rust = { tag = "v0.1.0", git = "https://github.com/apollodao/apollo-proto-rust" }
 cosmwasm-std = { version="1.0", features = ["stargate"] }
 cw20 = "0.13"
 cw20-base = "0.13"
