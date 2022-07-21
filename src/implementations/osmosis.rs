@@ -25,6 +25,12 @@ impl Display for OsmosisDenom {
     }
 }
 
+impl From<OsmosisDenom> for AssetInfo {
+    fn from(denom: OsmosisDenom) -> Self {
+        AssetInfo::Native(denom.0)
+    }
+}
+
 impl TryFrom<AssetInfo> for OsmosisDenom {
     type Error = StdError;
 
@@ -188,10 +194,6 @@ fn parse_osmosis_denom_from_instantiate_event(response: SubMsgResponse) -> StdRe
 }
 
 // TODO:
-// * Implement TryFrom<Asset> for OsmosisDenom
-//     * Verify valid denom
-// * Implement From<OsmosisDenom> for Asset
-// * Break out minting and burning into separate trait and implement cw20token
 // * Verify owner function on OsmosisDenom
 // * More useful functions?
 // * Implement queries as trait
