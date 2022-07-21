@@ -1,4 +1,8 @@
-use cosmwasm_std::{Api, Binary, Reply, Response, StdResult, Storage, SubMsg, Uint128};
+use std::{borrow::Cow, fmt::Display};
+
+use cosmwasm_std::{
+    Api, Binary, QuerierWrapper, Reply, Response, StdError, StdResult, Storage, SubMsg, Uint128,
+};
 use cw_storage_plus::Item;
 use serde::{de::DeserializeOwned, Serialize};
 
@@ -14,18 +18,31 @@ pub trait Instantiate<A: Serialize + DeserializeOwned>: Sized {
     ) -> Result<Response, CwTokenError>;
 }
 
+pub trait Token: Display {
+    fn transfer<A: Into<String>>(&self, to: A, amount: Uint128) -> StdResult<Response>;
+
+    fn query_balance<A: Into<String>>(
+        &self,
+        querier: &QuerierWrapper,
+        address: A,
+    ) -> StdResult<Uint128>;
+
+    fn is_native() -> bool;
+}
+
 pub trait Send {
     fn send<A: Into<String>>(&self, to: A, amount: Uint128, msg: Binary) -> StdResult<Response>;
 }
 
-pub trait Transfer {
-    fn transfer<A: Into<String>>(&self, to: A, amount: Uint128) -> StdResult<Response>;
+pub trait TransferFrom {
     fn transfer_from<A: Into<String>, B: Into<String>>(
         &self,
-        from: A,
-        to: B,
-        amount: Uint128,
-    ) -> StdResult<Response>;
+        _from: A,
+        _to: B,
+        _amount: Uint128,
+    ) -> StdResult<Response> {
+        unimplemented!()
+    }
 }
 
 pub trait Mint {
@@ -47,10 +64,6 @@ pub trait Burn {
     fn is_burnable() -> bool {
         true
     }
-}
-
-pub trait IsNative {
-    fn is_native() -> bool;
 }
 
 //--------------------------------------------------------------------------------------------------

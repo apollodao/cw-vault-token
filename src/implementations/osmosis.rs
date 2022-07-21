@@ -1,13 +1,13 @@
-use crate::token::{Burn, Instantiate, IsNative, Mint, Transfer};
+use crate::token::{Burn, Instantiate, Mint};
 use crate::utils::unwrap_reply;
-use crate::CwTokenError;
+use crate::{CwTokenError, Token};
 use apollo_proto_rust::cosmos::base::v1beta1::Coin as CoinMsg;
 use apollo_proto_rust::osmosis::tokenfactory::v1beta1::{MsgBurn, MsgCreateDenom, MsgMint};
 use apollo_proto_rust::utils::encode;
 use apollo_proto_rust::OsmosisTypeURLs;
 use cosmwasm_std::{
-    Api, BankMsg, Coin, CosmosMsg, Reply, Response, StdError, StdResult, Storage, SubMsg,
-    SubMsgResponse, Uint128,
+    Api, BankMsg, BankQuery, Coin, CosmosMsg, QuerierWrapper, QueryRequest, Reply, Response,
+    StdError, StdResult, Storage, SubMsg, SubMsgResponse, Uint128,
 };
 use cw_asset::AssetInfo;
 use cw_storage_plus::Item;
@@ -61,13 +61,7 @@ impl TryFrom<&AssetInfo> for OsmosisDenom {
     }
 }
 
-impl IsNative for OsmosisDenom {
-    fn is_native() -> bool {
-        true
-    }
-}
-
-impl Transfer for OsmosisDenom {
+impl Token for OsmosisDenom {
     fn transfer<A: Into<String>>(&self, to: A, amount: Uint128) -> StdResult<Response> {
         Ok(Response::new().add_message(CosmosMsg::Bank(BankMsg::Send {
             to_address: to.into(),
@@ -78,13 +72,16 @@ impl Transfer for OsmosisDenom {
         })))
     }
 
-    fn transfer_from<A: Into<String>, B: Into<String>>(
+    fn query_balance<A: Into<String>>(
         &self,
-        _from: A,
-        _to: B,
-        _amount: Uint128,
-    ) -> StdResult<Response> {
-        unimplemented!()
+        querier: &QuerierWrapper,
+        address: A,
+    ) -> StdResult<Uint128> {
+        Ok(querier.query_balance(address, self.0.clone())?.amount)
+    }
+
+    fn is_native() -> bool {
+        true
     }
 }
 

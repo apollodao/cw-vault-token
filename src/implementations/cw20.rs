@@ -1,8 +1,8 @@
 use cosmwasm_std::{
-    to_binary, Addr, Api, CosmosMsg, Reply, Response, StdError, StdResult, Storage, SubMsg,
-    SubMsgResponse, Uint128, WasmMsg,
+    to_binary, Addr, Api, CosmosMsg, QueryRequest, Reply, Response, StdError, StdResult, Storage,
+    SubMsg, SubMsgResponse, Uint128, WasmMsg, WasmQuery,
 };
-use cw20::Cw20ExecuteMsg;
+use cw20::{BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
 use cw20_base::msg::InstantiateMsg as Cw20InstantiateMsg;
 use cw_asset::AssetInfo;
 use cw_storage_plus::Item;
@@ -11,9 +11,9 @@ use serde::{Deserialize, Serialize};
 use std::{convert::TryFrom, fmt::Display};
 
 use crate::{
-    token::{Burn, Instantiate, IsNative, Mint, Transfer},
+    token::{Burn, Instantiate, Mint},
     utils::unwrap_reply,
-    CwTokenError,
+    CwTokenError, Token, TransferFrom,
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -71,7 +71,7 @@ fn parse_contract_addr_from_instantiate_event(
     api.addr_validate(contract_addr_str)
 }
 
-impl Transfer for Cw20 {
+impl Token for Cw20 {
     fn transfer<A: Into<String>>(&self, to: A, amount: Uint128) -> StdResult<Response> {
         Ok(
             Response::new().add_message(CosmosMsg::Wasm(WasmMsg::Execute {
@@ -85,6 +85,27 @@ impl Transfer for Cw20 {
         )
     }
 
+    fn query_balance<A: Into<String>>(
+        &self,
+        querier: &cosmwasm_std::QuerierWrapper,
+        address: A,
+    ) -> StdResult<Uint128> {
+        Ok(querier
+            .query::<BalanceResponse>(&QueryRequest::Wasm(WasmQuery::Smart {
+                contract_addr: self.0.to_string(),
+                msg: to_binary(&Cw20QueryMsg::Balance {
+                    address: address.into(),
+                })?,
+            }))?
+            .balance)
+    }
+
+    fn is_native() -> bool {
+        false
+    }
+}
+
+impl TransferFrom for Cw20 {
     fn transfer_from<A: Into<String>, B: Into<String>>(
         &self,
         from: A,
@@ -102,12 +123,6 @@ impl Transfer for Cw20 {
                 funds: vec![],
             })),
         )
-    }
-}
-
-impl IsNative for Cw20 {
-    fn is_native() -> bool {
-        false
     }
 }
 
