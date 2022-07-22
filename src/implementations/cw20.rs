@@ -16,7 +16,7 @@ use crate::{
     CwTokenError, Token, TransferFrom,
 };
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct Cw20(pub Addr);
 
 impl Display for Cw20 {

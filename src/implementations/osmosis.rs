@@ -6,8 +6,8 @@ use apollo_proto_rust::osmosis::tokenfactory::v1beta1::{MsgBurn, MsgCreateDenom,
 use apollo_proto_rust::utils::encode;
 use apollo_proto_rust::OsmosisTypeURLs;
 use cosmwasm_std::{
-    Api, BankMsg, BankQuery, Coin, CosmosMsg, QuerierWrapper, QueryRequest, Reply, Response,
-    StdError, StdResult, Storage, SubMsg, SubMsgResponse, Uint128,
+    Api, BankMsg, Coin, CosmosMsg, QuerierWrapper, Reply, Response, StdError, StdResult, Storage,
+    SubMsg, SubMsgResponse, Uint128,
 };
 use cw_asset::AssetInfo;
 use cw_storage_plus::Item;
@@ -16,7 +16,7 @@ use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
 use std::fmt::Display;
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct OsmosisDenom(pub String);
 
 impl Display for OsmosisDenom {
@@ -128,7 +128,7 @@ impl Burn for OsmosisDenom {
         }))
     }
 }
-
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct OsmosisDenomInstantiator {
     pub denom: String,
     pub sender: String,

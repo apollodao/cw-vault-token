@@ -1,7 +1,7 @@
-use std::{borrow::Cow, fmt::Display};
+use std::fmt::Display;
 
 use cosmwasm_std::{
-    Api, Binary, QuerierWrapper, Reply, Response, StdError, StdResult, Storage, SubMsg, Uint128,
+    Api, Binary, QuerierWrapper, Reply, Response, StdResult, Storage, SubMsg, Uint128,
 };
 use cw_storage_plus::Item;
 use serde::{de::DeserializeOwned, Serialize};
