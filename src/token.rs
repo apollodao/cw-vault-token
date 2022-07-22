@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use cosmwasm_std::{
-    Api, Binary, QuerierWrapper, Reply, Response, StdResult, Storage, SubMsg, Uint128,
+    Addr, Api, Binary, QuerierWrapper, Reply, Response, StdResult, Storage, SubMsg, Uint128,
 };
 use cw_storage_plus::Item;
 use serde::{de::DeserializeOwned, Serialize};
@@ -16,6 +16,8 @@ pub trait Instantiate<A: Serialize + DeserializeOwned>: Sized {
         reply: &Reply,
         item: Item<A>,
     ) -> Result<Response, CwTokenError>;
+
+    fn set_admin_addr(&mut self, addr: &Addr);
 }
 
 pub trait Token: Display {

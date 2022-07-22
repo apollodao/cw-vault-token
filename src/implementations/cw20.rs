@@ -200,4 +200,8 @@ impl Instantiate<Cw20> for Cw20Instantiator {
             _ => Err(CwTokenError::InvalidReplyId {}),
         }
     }
+
+    fn set_admin_addr(&mut self, addr: &Addr) {
+        self.admin = Some(addr.to_string());
+    }
 }

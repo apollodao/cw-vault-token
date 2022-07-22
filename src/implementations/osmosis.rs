@@ -6,8 +6,8 @@ use apollo_proto_rust::osmosis::tokenfactory::v1beta1::{MsgBurn, MsgCreateDenom,
 use apollo_proto_rust::utils::encode;
 use apollo_proto_rust::OsmosisTypeURLs;
 use cosmwasm_std::{
-    Api, BankMsg, Coin, CosmosMsg, QuerierWrapper, Reply, Response, StdError, StdResult, Storage,
-    SubMsg, SubMsgResponse, Uint128,
+    Addr, Api, BankMsg, Coin, CosmosMsg, QuerierWrapper, Reply, Response, StdError, StdResult,
+    Storage, SubMsg, SubMsgResponse, Uint128,
 };
 use cw_asset::AssetInfo;
 use cw_storage_plus::Item;
@@ -168,6 +168,10 @@ impl Instantiate<OsmosisDenom> for OsmosisDenomInstantiator {
             }
             _ => Err(CwTokenError::InvalidReplyId {}),
         }
+    }
+
+    fn set_admin_addr(&mut self, addr: &Addr) {
+        self.sender = addr.to_string();
     }
 }
 
