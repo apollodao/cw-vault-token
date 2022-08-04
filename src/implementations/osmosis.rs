@@ -1,13 +1,12 @@
 use crate::token::{Burn, Instantiate, Mint};
-use crate::utils::unwrap_reply;
 use crate::{CwTokenError, Token};
 use apollo_proto_rust::cosmos::base::v1beta1::Coin as CoinMsg;
 use apollo_proto_rust::osmosis::tokenfactory::v1beta1::{MsgBurn, MsgCreateDenom, MsgMint};
 use apollo_proto_rust::utils::encode;
 use apollo_proto_rust::OsmosisTypeURLs;
 use cosmwasm_std::{
-    Addr, Api, BankMsg, Coin, CosmosMsg, QuerierWrapper, Reply, Response, StdError, StdResult,
-    Storage, SubMsg, SubMsgResponse, Uint128,
+    Addr, BankMsg, Coin, CosmosMsg, DepsMut, Env, QuerierWrapper, Reply, Response, StdError,
+    StdResult, SubMsg, SubMsgResponse, Uint128,
 };
 use cw_asset::AssetInfo;
 use cw_storage_plus::Item;
@@ -149,18 +148,16 @@ impl Instantiate<OsmosisDenom> for OsmosisDenomInstantiator {
     }
 
     fn save_asset(
-        storage: &mut dyn Storage,
-        _api: &dyn Api,
+        deps: DepsMut,
+        env: &Env,
         reply: &Reply,
         item: Item<OsmosisDenom>,
     ) -> Result<Response, CwTokenError> {
         match reply.id {
             REPLY_SAVE_OSMOSIS_DENOM => {
-                let res = unwrap_reply(reply)?;
-                let denom = parse_osmosis_denom_from_instantiate_event(res)
-                    .map_err(|e| StdError::generic_err(format!("{}", e)))?;
+                let denom = format!("factory/{}/apOSMO", env.contract.address);
 
-                item.save(storage, &OsmosisDenom(denom.clone()))?;
+                item.save(deps.storage, &OsmosisDenom(denom.clone()))?;
 
                 Ok(Response::new()
                     .add_attribute("action", "save_osmosis_denom")
