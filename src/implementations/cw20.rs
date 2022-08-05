@@ -1,6 +1,11 @@
+use crate::{
+    token::{Burn, Instantiate, Mint},
+    utils::unwrap_reply,
+    CwTokenError, Token, TransferFrom,
+};
 use cosmwasm_std::{
-    to_binary, Addr, Api, CosmosMsg, QueryRequest, Reply, Response, StdError, StdResult, Storage,
-    SubMsg, SubMsgResponse, Uint128, WasmMsg, WasmQuery,
+    to_binary, Addr, Api, CosmosMsg, DepsMut, Env, QueryRequest, Reply, Response, StdError,
+    StdResult, SubMsg, SubMsgResponse, Uint128, WasmMsg, WasmQuery,
 };
 use cw20::{BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
 use cw20_base::msg::InstantiateMsg as Cw20InstantiateMsg;
@@ -9,12 +14,6 @@ use cw_storage_plus::Item;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{convert::TryFrom, fmt::Display};
-
-use crate::{
-    token::{Burn, Instantiate, Mint},
-    utils::unwrap_reply,
-    CwTokenError, Token, TransferFrom,
-};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct Cw20(pub Addr);
@@ -167,8 +166,8 @@ pub struct Cw20Instantiator {
 }
 
 impl Instantiate<Cw20> for Cw20Instantiator {
-    fn instantiate_msg(&self) -> StdResult<SubMsg> {
-        Ok(SubMsg::reply_always(
+    fn instantiate_res(&self, _env: &Env) -> StdResult<Response> {
+        let init_msg = SubMsg::reply_always(
             WasmMsg::Instantiate {
                 admin: self.admin.clone(),
                 code_id: self.code_id,
@@ -177,21 +176,22 @@ impl Instantiate<Cw20> for Cw20Instantiator {
                 label: self.label.clone(),
             },
             REPLY_SAVE_CW20_ADDRESS,
-        ))
+        );
+        Ok(Response::new().add_submessage(init_msg))
     }
 
     fn save_asset(
-        storage: &mut dyn Storage,
-        api: &dyn Api,
+        deps: DepsMut,
+        _env: &Env,
         reply: &Reply,
         item: Item<Cw20>,
     ) -> Result<Response, CwTokenError> {
         match reply.id {
             REPLY_SAVE_CW20_ADDRESS => {
                 let res = unwrap_reply(reply)?;
-                let addr = parse_contract_addr_from_instantiate_event(api, res)?;
+                let addr = parse_contract_addr_from_instantiate_event(deps.api, res)?;
 
-                item.save(storage, &Cw20(addr.clone()))?;
+                item.save(deps.storage, &Cw20(addr.clone()))?;
 
                 Ok(Response::new()
                     .add_attribute("action", "save_osmosis_denom")

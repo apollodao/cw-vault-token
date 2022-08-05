@@ -6,8 +6,8 @@ use apollo_proto_rust::osmosis::tokenfactory::v1beta1::{MsgBurn, MsgCreateDenom,
 use apollo_proto_rust::utils::encode;
 use apollo_proto_rust::OsmosisTypeURLs;
 use cosmwasm_std::{
-    Addr, Api, BankMsg, Coin, CosmosMsg, QuerierWrapper, Reply, Response, StdError, StdResult,
-    Storage, SubMsg, SubMsgResponse, Uint128,
+    Addr, BankMsg, Coin, CosmosMsg, DepsMut, Env, Event, QuerierWrapper, Reply, Response, StdError,
+    StdResult, SubMsg, SubMsgResponse, Uint128,
 };
 use cw_asset::AssetInfo;
 use cw_storage_plus::Item;
@@ -135,8 +135,8 @@ pub struct OsmosisDenomInstantiator {
 }
 
 impl Instantiate<OsmosisDenom> for OsmosisDenomInstantiator {
-    fn instantiate_msg(&self) -> StdResult<SubMsg> {
-        Ok(SubMsg::reply_always(
+    fn instantiate_res(&self, env: &Env) -> StdResult<Response> {
+        let init_msg = SubMsg::reply_always(
             CosmosMsg::Stargate {
                 type_url: OsmosisTypeURLs::CreateDenom.to_string(),
                 value: encode(MsgCreateDenom {
@@ -145,12 +145,17 @@ impl Instantiate<OsmosisDenom> for OsmosisDenomInstantiator {
                 }),
             },
             REPLY_SAVE_OSMOSIS_DENOM,
-        ))
+        );
+        let denom = format!("factory/{}/{}", env.contract.address, self.denom);
+        let init_event = Event::new("create_denom").add_attribute("new_token_denom", denom);
+        Ok(Response::new()
+            .add_submessage(init_msg)
+            .add_event(init_event))
     }
 
     fn save_asset(
-        storage: &mut dyn Storage,
-        _api: &dyn Api,
+        deps: DepsMut,
+        _env: &Env,
         reply: &Reply,
         item: Item<OsmosisDenom>,
     ) -> Result<Response, CwTokenError> {
@@ -160,7 +165,7 @@ impl Instantiate<OsmosisDenom> for OsmosisDenomInstantiator {
                 let denom = parse_osmosis_denom_from_instantiate_event(res)
                     .map_err(|e| StdError::generic_err(format!("{}", e)))?;
 
-                item.save(storage, &OsmosisDenom(denom.clone()))?;
+                item.save(deps.storage, &OsmosisDenom(denom.clone()))?;
 
                 Ok(Response::new()
                     .add_attribute("action", "save_osmosis_denom")
