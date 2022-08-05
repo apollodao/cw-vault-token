@@ -1,5 +1,5 @@
 use cosmwasm_std::{
-    Addr, Binary, DepsMut, Env, QuerierWrapper, Reply, Response, StdResult, SubMsg, Uint128,
+    Addr, Binary, DepsMut, Env, QuerierWrapper, Reply, Response, StdResult, Uint128,
 };
 use cw_storage_plus::Item;
 use serde::{de::DeserializeOwned, Serialize};
@@ -7,7 +7,7 @@ use std::fmt::Display;
 
 use crate::CwTokenError;
 pub trait Instantiate<A: Serialize + DeserializeOwned>: Sized {
-    fn instantiate_msg(&self) -> StdResult<SubMsg>;
+    fn instantiate_res(&self, env: &Env) -> StdResult<Response>;
 
     fn save_asset(
         deps: DepsMut,

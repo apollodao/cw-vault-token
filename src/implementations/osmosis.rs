@@ -1,11 +1,12 @@
 use crate::token::{Burn, Instantiate, Mint};
+use crate::utils::unwrap_reply;
 use crate::{CwTokenError, Token};
 use apollo_proto_rust::cosmos::base::v1beta1::Coin as CoinMsg;
 use apollo_proto_rust::osmosis::tokenfactory::v1beta1::{MsgBurn, MsgCreateDenom, MsgMint};
 use apollo_proto_rust::utils::encode;
 use apollo_proto_rust::OsmosisTypeURLs;
 use cosmwasm_std::{
-    Addr, BankMsg, Coin, CosmosMsg, DepsMut, Env, QuerierWrapper, Reply, Response, StdError,
+    Addr, BankMsg, Coin, CosmosMsg, DepsMut, Env, Event, QuerierWrapper, Reply, Response, StdError,
     StdResult, SubMsg, SubMsgResponse, Uint128,
 };
 use cw_asset::AssetInfo;
@@ -134,8 +135,8 @@ pub struct OsmosisDenomInstantiator {
 }
 
 impl Instantiate<OsmosisDenom> for OsmosisDenomInstantiator {
-    fn instantiate_msg(&self) -> StdResult<SubMsg> {
-        Ok(SubMsg::reply_always(
+    fn instantiate_res(&self, env: &Env) -> StdResult<Response> {
+        let init_msg = SubMsg::reply_always(
             CosmosMsg::Stargate {
                 type_url: OsmosisTypeURLs::CreateDenom.to_string(),
                 value: encode(MsgCreateDenom {
@@ -144,18 +145,25 @@ impl Instantiate<OsmosisDenom> for OsmosisDenomInstantiator {
                 }),
             },
             REPLY_SAVE_OSMOSIS_DENOM,
-        ))
+        );
+        let denom = format!("factory/{}/{}", env.contract.address, self.denom);
+        let init_event = Event::new("create_denom").add_attribute("new_token_denom", denom);
+        Ok(Response::new()
+            .add_submessage(init_msg)
+            .add_event(init_event))
     }
 
     fn save_asset(
         deps: DepsMut,
-        env: &Env,
+        _env: &Env,
         reply: &Reply,
         item: Item<OsmosisDenom>,
     ) -> Result<Response, CwTokenError> {
         match reply.id {
             REPLY_SAVE_OSMOSIS_DENOM => {
-                let denom = format!("factory/{}/apOSMO", env.contract.address);
+                let res = unwrap_reply(reply)?;
+                let denom = parse_osmosis_denom_from_instantiate_event(res)
+                    .map_err(|e| StdError::generic_err(format!("{}", e)))?;
 
                 item.save(deps.storage, &OsmosisDenom(denom.clone()))?;
 

@@ -166,8 +166,8 @@ pub struct Cw20Instantiator {
 }
 
 impl Instantiate<Cw20> for Cw20Instantiator {
-    fn instantiate_msg(&self) -> StdResult<SubMsg> {
-        Ok(SubMsg::reply_always(
+    fn instantiate_res(&self, _env: &Env) -> StdResult<Response> {
+        let init_msg = SubMsg::reply_always(
             WasmMsg::Instantiate {
                 admin: self.admin.clone(),
                 code_id: self.code_id,
@@ -176,7 +176,8 @@ impl Instantiate<Cw20> for Cw20Instantiator {
                 label: self.label.clone(),
             },
             REPLY_SAVE_CW20_ADDRESS,
-        ))
+        );
+        Ok(Response::new().add_submessage(init_msg))
     }
 
     fn save_asset(
