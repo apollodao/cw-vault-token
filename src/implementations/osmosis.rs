@@ -12,8 +12,9 @@ use cosmwasm_std::{
 use cw_asset::AssetInfo;
 use cw_storage_plus::Item;
 use schemars::JsonSchema;
+use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
-use std::convert::TryFrom;
+use std::convert::{TryFrom, TryInto};
 use std::fmt::Display;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
@@ -129,55 +130,9 @@ impl Burn for OsmosisDenom {
     }
 }
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub struct OsmosisDenomInstantiator {
+pub struct OsmosisDenomInfo {
     pub denom: String,
     pub sender: String,
-}
-
-impl Instantiate<OsmosisDenom> for OsmosisDenomInstantiator {
-    fn instantiate_res(&self, env: &Env) -> StdResult<Response> {
-        let init_msg = SubMsg::reply_always(
-            CosmosMsg::Stargate {
-                type_url: OsmosisTypeURLs::CreateDenom.to_string(),
-                value: encode(MsgCreateDenom {
-                    sender: self.sender.clone(),
-                    subdenom: self.denom.clone(),
-                }),
-            },
-            REPLY_SAVE_OSMOSIS_DENOM,
-        );
-        let denom = format!("factory/{}/{}", env.contract.address, self.denom);
-        let init_event = Event::new("create_denom").add_attribute("new_token_denom", denom);
-        Ok(Response::new()
-            .add_submessage(init_msg)
-            .add_event(init_event))
-    }
-
-    fn save_asset(
-        deps: DepsMut,
-        _env: &Env,
-        reply: &Reply,
-        item: Item<OsmosisDenom>,
-    ) -> Result<Response, CwTokenError> {
-        match reply.id {
-            REPLY_SAVE_OSMOSIS_DENOM => {
-                let res = unwrap_reply(reply)?;
-                let denom = parse_osmosis_denom_from_instantiate_event(res)
-                    .map_err(|e| StdError::generic_err(format!("{}", e)))?;
-
-                item.save(deps.storage, &OsmosisDenom(denom.clone()))?;
-
-                Ok(Response::new()
-                    .add_attribute("action", "save_osmosis_denom")
-                    .add_attribute("denom", &denom))
-            }
-            _ => Err(CwTokenError::InvalidReplyId {}),
-        }
-    }
-
-    fn set_admin_addr(&mut self, addr: &Addr) {
-        self.sender = addr.to_string();
-    }
 }
 
 pub const REPLY_SAVE_OSMOSIS_DENOM: u64 = 14508;
@@ -197,6 +152,44 @@ fn parse_osmosis_denom_from_instantiate_event(response: SubMsgResponse) -> StdRe
         .value;
 
     Ok(denom.to_string())
+}
+
+impl Instantiate for OsmosisDenom {
+    fn instantiate<T: Serialize + DeserializeOwned>(&self, init_info: T) -> StdResult<Response> {
+        OsmosisDenomInfo::from(init_info.try_into()?);
+        Ok(Response::new().add_messages(vec![
+            CosmosMsg::Stargate {
+                type_url: OsmosisTypeURLs::Mint.to_string(),
+                value: encode(MsgMint {
+                    amount: Some(CoinMsg {
+                        denom: self.0.clone(),
+                        amount: init_info.amount,
+                    }),
+                    sender: sender.into(),
+                }),
+            },
+            CosmosMsg::Bank(BankMsg::Send {
+                to_address: recipient.into(),
+                amount: vec![Coin {
+                    denom: self.0.clone(),
+                    amount,
+                }],
+            }),
+        ]))
+    }
+
+    fn save_asset<T: Serialize + DeserializeOwned>(
+        deps: DepsMut,
+        env: &Env,
+        reply: &Reply,
+        item: Item<T>,
+    ) -> Result<Response, CwTokenError> {
+        todo!()
+    }
+
+    fn set_admin_addr(&mut self, addr: &Addr) {
+        todo!()
+    }
 }
 
 // TODO:
