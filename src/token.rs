@@ -7,7 +7,7 @@ use std::fmt::Display;
 
 use crate::CwTokenError;
 pub trait Instantiate<T: Serialize + DeserializeOwned>: Sized {
-    fn instantiate(&self, init_info: T, contract_address: String) -> StdResult<Response>;
+    fn instantiate(&self, init_info: T) -> StdResult<Response>;
 
     fn save_asset(
         deps: DepsMut,

@@ -155,22 +155,18 @@ fn parse_osmosis_denom_from_instantiate_event(response: SubMsgResponse) -> StdRe
 }
 
 impl Instantiate<OsmosisDenomInfo> for OsmosisDenom {
-    fn instantiate(
-        &self,
-        init_info: OsmosisDenomInfo,
-        contract_address: String,
-    ) -> StdResult<Response> {
+    fn instantiate(&self, init_info: OsmosisDenomInfo) -> StdResult<Response> {
         let init_msg = SubMsg::reply_always(
             CosmosMsg::Stargate {
                 type_url: OsmosisTypeURLs::CreateDenom.to_string(),
                 value: encode(MsgCreateDenom {
-                    sender: init_info.sender,
+                    sender: init_info.sender.to_string(),
                     subdenom: init_info.denom.to_string(),
                 }),
             },
             REPLY_SAVE_OSMOSIS_DENOM,
         );
-        let denom = format!("factory/{}/{}", contract_address, init_info.denom);
+        let denom = format!("factory/{}/{}", init_info.sender, init_info.denom);
         let init_event = Event::new("create_denom").add_attribute("new_token_denom", denom);
         Ok(Response::new()
             .add_submessage(init_msg)
