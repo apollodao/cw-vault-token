@@ -154,35 +154,34 @@ fn parse_osmosis_denom_from_instantiate_event(response: SubMsgResponse) -> StdRe
     Ok(denom.to_string())
 }
 
-impl Instantiate for OsmosisDenom {
-    fn instantiate<T: Serialize + DeserializeOwned>(&self, init_info: T) -> StdResult<Response> {
-        OsmosisDenomInfo::from(init_info.try_into()?);
-        Ok(Response::new().add_messages(vec![
+impl Instantiate<OsmosisDenomInfo> for OsmosisDenom {
+    fn instantiate(
+        &self,
+        init_info: OsmosisDenomInfo,
+        contract_address: String,
+    ) -> StdResult<Response> {
+        let init_msg = SubMsg::reply_always(
             CosmosMsg::Stargate {
-                type_url: OsmosisTypeURLs::Mint.to_string(),
-                value: encode(MsgMint {
-                    amount: Some(CoinMsg {
-                        denom: self.0.clone(),
-                        amount: init_info.amount,
-                    }),
-                    sender: sender.into(),
+                type_url: OsmosisTypeURLs::CreateDenom.to_string(),
+                value: encode(MsgCreateDenom {
+                    sender: init_info.sender,
+                    subdenom: init_info.denom.to_string(),
                 }),
             },
-            CosmosMsg::Bank(BankMsg::Send {
-                to_address: recipient.into(),
-                amount: vec![Coin {
-                    denom: self.0.clone(),
-                    amount,
-                }],
-            }),
-        ]))
+            REPLY_SAVE_OSMOSIS_DENOM,
+        );
+        let denom = format!("factory/{}/{}", contract_address, init_info.denom);
+        let init_event = Event::new("create_denom").add_attribute("new_token_denom", denom);
+        Ok(Response::new()
+            .add_submessage(init_msg)
+            .add_event(init_event))
     }
 
-    fn save_asset<T: Serialize + DeserializeOwned>(
+    fn save_asset(
         deps: DepsMut,
         env: &Env,
         reply: &Reply,
-        item: Item<T>,
+        item: Item<OsmosisDenomInfo>,
     ) -> Result<Response, CwTokenError> {
         todo!()
     }
