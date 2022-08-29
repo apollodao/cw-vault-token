@@ -154,7 +154,7 @@ fn parse_osmosis_denom_from_instantiate_event(response: SubMsgResponse) -> StdRe
     Ok(denom.to_string())
 }
 
-impl Instantiate<OsmosisDenomInfo, OsmosisDenom> for OsmosisDenom {
+impl Instantiate<OsmosisDenomInfo> for OsmosisDenom {
     fn instantiate(
         &self,
         init_info: OsmosisDenomInfo,
