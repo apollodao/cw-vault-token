@@ -154,7 +154,7 @@ fn parse_osmosis_denom_from_instantiate_event(response: SubMsgResponse) -> StdRe
     Ok(denom.to_string())
 }
 
-impl Instantiate<OsmosisDenomInfo> for OsmosisDenom {
+impl Instantiate<OsmosisDenomInfo, OsmosisDenom> for OsmosisDenom {
     fn instantiate(
         &self,
         init_info: OsmosisDenomInfo,
@@ -181,13 +181,22 @@ impl Instantiate<OsmosisDenomInfo> for OsmosisDenom {
         deps: DepsMut,
         env: &Env,
         reply: &Reply,
-        item: Item<OsmosisDenomInfo>,
+        item: Item<OsmosisDenom>,
     ) -> Result<Response, CwTokenError> {
-        todo!()
-    }
+        match reply.id {
+            REPLY_SAVE_OSMOSIS_DENOM => {
+                let res = unwrap_reply(reply)?;
+                let denom = parse_osmosis_denom_from_instantiate_event(res)
+                    .map_err(|e| StdError::generic_err(format!("{}", e)))?;
 
-    fn set_admin_addr(&mut self, addr: &Addr) {
-        todo!()
+                item.save(deps.storage, &OsmosisDenom(denom.clone()))?;
+
+                Ok(Response::new()
+                    .add_attribute("action", "save_osmosis_denom")
+                    .add_attribute("denom", &denom))
+            }
+            _ => Err(CwTokenError::InvalidReplyId {}),
+        }
     }
 }
 

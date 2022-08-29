@@ -6,17 +6,17 @@ use serde::{de::DeserializeOwned, Serialize};
 use std::fmt::Display;
 
 use crate::CwTokenError;
-pub trait Instantiate<T: Serialize + DeserializeOwned> {
+pub trait Instantiate<T: Serialize + DeserializeOwned, A: Serialize + DeserializeOwned> {
     fn instantiate(&self, init_info: T, contract_address: String) -> StdResult<Response>;
 
     fn save_asset(
         deps: DepsMut,
         env: &Env,
         reply: &Reply,
-        item: Item<T>,
+        item: Item<A>,
     ) -> Result<Response, CwTokenError>;
 
-    fn set_admin_addr(&mut self, addr: &Addr);
+    //fn set_admin_addr(&mut self, addr: &Addr);
 }
 
 pub trait Token: Display {
