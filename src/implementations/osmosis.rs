@@ -6,8 +6,8 @@ use apollo_proto_rust::osmosis::tokenfactory::v1beta1::{MsgBurn, MsgCreateDenom,
 use apollo_proto_rust::utils::encode;
 use apollo_proto_rust::OsmosisTypeURLs;
 use cosmwasm_std::{
-    Addr, BankMsg, Coin, CosmosMsg, DepsMut, Env, Event, QuerierWrapper, Reply, Response, StdError,
-    StdResult, SubMsg, SubMsgResponse, Uint128,
+    from_binary, Addr, BankMsg, Binary, Coin, CosmosMsg, DepsMut, Env, Event, QuerierWrapper,
+    Reply, Response, StdError, StdResult, SubMsg, SubMsgResponse, Uint128,
 };
 use cw_asset::AssetInfo;
 use cw_storage_plus::Item;
@@ -154,8 +154,13 @@ fn parse_osmosis_denom_from_instantiate_event(response: SubMsgResponse) -> StdRe
     Ok(denom.to_string())
 }
 
-impl Instantiate<OsmosisDenomInfo> for OsmosisDenom {
-    fn instantiate(&self, init_info: OsmosisDenomInfo) -> StdResult<Response> {
+impl Instantiate for OsmosisDenom {
+    fn instantiate(&self, init_info: Binary) -> StdResult<Response> {
+        // Deserialize the init info binary
+        let init_info: OsmosisDenomInfo = from_binary(&init_info).map_err(|e| {
+            StdError::generic_err(format!("failed to deserialize init info: {}", e))
+        })?;
+
         let init_msg = SubMsg::reply_always(
             CosmosMsg::Stargate {
                 type_url: OsmosisTypeURLs::CreateDenom.to_string(),
@@ -173,7 +178,7 @@ impl Instantiate<OsmosisDenomInfo> for OsmosisDenom {
             .add_event(init_event))
     }
 
-    fn save_asset(
+    fn save_token(
         deps: DepsMut,
         env: &Env,
         reply: &Reply,
