@@ -1,16 +1,13 @@
 use crate::{
-    token::{Burn, Instantiate, Mint},
-    utils::unwrap_reply,
-    CwTokenError, Token, TransferFrom,
+    token::{Burn, Mint},
+    Token, TransferFrom,
 };
 use cosmwasm_std::{
-    to_binary, Addr, Api, CosmosMsg, DepsMut, Env, QueryRequest, Reply, Response, StdError,
-    StdResult, SubMsg, SubMsgResponse, Uint128, WasmMsg, WasmQuery,
+    to_binary, Addr, Api, CosmosMsg, QueryRequest, Response, StdError, StdResult, SubMsgResponse,
+    Uint128, WasmMsg, WasmQuery,
 };
 use cw20::{BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
-use cw20_base::msg::InstantiateMsg as Cw20InstantiateMsg;
 use cw_asset::AssetInfo;
-use cw_storage_plus::Item;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{convert::TryFrom, fmt::Display};
@@ -39,8 +36,11 @@ impl TryFrom<AssetInfo> for Cw20 {
             AssetInfo::Native(_) => {
                 Err(StdError::generic_err("Cannot convert native addr to Cw20."))
             }
-            AssetInfo::Cw1155(_, _) => Err(StdError::generic_err(
+            AssetInfo::Cw1155(_x, _y) => Err(StdError::generic_err(
                 "Cannot convert Cw1155 asset to Cw20.",
+            )),
+            _ => Err(StdError::generic_err(
+                "Cannot convert unknown asset to Cw20.",
             )),
         }
     }

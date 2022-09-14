@@ -6,15 +6,14 @@ use apollo_proto_rust::osmosis::tokenfactory::v1beta1::{MsgBurn, MsgCreateDenom,
 use apollo_proto_rust::utils::encode;
 use apollo_proto_rust::OsmosisTypeURLs;
 use cosmwasm_std::{
-    from_binary, Addr, BankMsg, Binary, Coin, CosmosMsg, DepsMut, Env, Event, QuerierWrapper,
-    Reply, Response, StdError, StdResult, SubMsg, SubMsgResponse, Uint128,
+    from_binary, BankMsg, Binary, Coin, CosmosMsg, DepsMut, Env, Event, QuerierWrapper, Reply,
+    Response, StdError, StdResult, SubMsg, SubMsgResponse, Uint128,
 };
 use cw_asset::AssetInfo;
 use cw_storage_plus::Item;
 use schemars::JsonSchema;
-use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
-use std::convert::{TryFrom, TryInto};
+use std::convert::TryFrom;
 use std::fmt::Display;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
@@ -49,6 +48,9 @@ impl TryFrom<AssetInfo> for OsmosisDenom {
             }
             AssetInfo::Cw1155(_, _) => Err(StdError::generic_err(
                 "Cannot convert Cw1155 asset to OsmosisDenom.",
+            )),
+            _ => Err(StdError::generic_err(
+                "Cannot convert unknown asset to OsmosisDenom.",
             )),
         }
     }
@@ -180,7 +182,7 @@ impl Instantiate for OsmosisDenom {
 
     fn save_token(
         deps: DepsMut,
-        env: &Env,
+        _env: &Env,
         reply: &Reply,
         item: Item<OsmosisDenom>,
     ) -> Result<Response, CwTokenError> {
