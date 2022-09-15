@@ -3,8 +3,8 @@ use crate::{
     Token, TransferFrom,
 };
 use cosmwasm_std::{
-    to_binary, Addr, Api, CosmosMsg, QueryRequest, Response, StdError, StdResult, SubMsgResponse,
-    Uint128, WasmMsg, WasmQuery,
+    to_binary, Addr, CosmosMsg, QueryRequest, Response, StdError, StdResult, Uint128, WasmMsg,
+    WasmQuery,
 };
 use cw20::{BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
 use cw_asset::AssetInfo;
@@ -49,26 +49,6 @@ impl TryFrom<AssetInfo> for Cw20 {
 // ------ Implement Instantiate for Cw20Asset ------
 
 pub const REPLY_SAVE_CW20_ADDRESS: u64 = 14509;
-
-fn parse_contract_addr_from_instantiate_event(
-    api: &dyn Api,
-    response: SubMsgResponse,
-) -> StdResult<Addr> {
-    let event = response
-        .events
-        .iter()
-        .find(|event| event.ty == "instantiate")
-        .ok_or_else(|| StdError::generic_err("cannot find `instantiate` event"))?;
-
-    let contract_addr_str = &event
-        .attributes
-        .iter()
-        .find(|attr| attr.key == "_contract_address")
-        .ok_or_else(|| StdError::generic_err("cannot find `_contract_address` attribute"))?
-        .value;
-
-    api.addr_validate(contract_addr_str)
-}
 
 impl Token for Cw20 {
     fn transfer<A: Into<String>>(&self, to: A, amount: Uint128) -> StdResult<Response> {

@@ -184,7 +184,7 @@ impl Instantiate for OsmosisDenom {
         deps: DepsMut,
         _env: &Env,
         reply: &Reply,
-        item: Item<OsmosisDenom>,
+        item: &Item<OsmosisDenom>,
     ) -> Result<Response, CwTokenError> {
         match reply.id {
             REPLY_SAVE_OSMOSIS_DENOM => {

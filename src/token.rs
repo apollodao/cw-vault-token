@@ -1,6 +1,4 @@
-use cosmwasm_std::{
-    Addr, Binary, DepsMut, Env, QuerierWrapper, Reply, Response, StdResult, Uint128,
-};
+use cosmwasm_std::{Binary, DepsMut, Env, QuerierWrapper, Reply, Response, StdResult, Uint128};
 use cw_storage_plus::Item;
 use std::fmt::Display;
 
@@ -52,7 +50,7 @@ pub trait Instantiate: Sized {
         deps: DepsMut,
         env: &Env,
         reply: &Reply,
-        item: Item<Self>,
+        item: &Item<Self>,
     ) -> Result<Response, CwTokenError>;
 
     //fn set_admin_addr(&mut self, addr: &Addr);
