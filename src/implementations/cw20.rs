@@ -2,17 +2,16 @@ use crate::{
     token::{Burn, Mint},
     Token, TransferFrom,
 };
+use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
     to_binary, Addr, CosmosMsg, QueryRequest, Response, StdError, StdResult, Uint128, WasmMsg,
     WasmQuery,
 };
 use cw20::{BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
 use cw_asset::AssetInfo;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 use std::{convert::TryFrom, fmt::Display};
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cw_serde]
 pub struct Cw20(pub Addr);
 
 impl Display for Cw20 {
