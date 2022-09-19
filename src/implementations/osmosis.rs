@@ -5,18 +5,17 @@ use apollo_proto_rust::cosmos::base::v1beta1::Coin as CoinMsg;
 use apollo_proto_rust::osmosis::tokenfactory::v1beta1::{MsgBurn, MsgCreateDenom, MsgMint};
 use apollo_proto_rust::utils::encode;
 use apollo_proto_rust::OsmosisTypeURLs;
+use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
     from_binary, BankMsg, Binary, Coin, CosmosMsg, DepsMut, Env, Event, QuerierWrapper, Reply,
     Response, StdError, StdResult, SubMsg, SubMsgResponse, Uint128,
 };
 use cw_asset::AssetInfo;
 use cw_storage_plus::Item;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
 use std::fmt::Display;
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cw_serde]
 pub struct OsmosisDenom(pub String);
 
 impl Display for OsmosisDenom {
@@ -131,7 +130,7 @@ impl Burn for OsmosisDenom {
         }))
     }
 }
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cw_serde]
 pub struct OsmosisDenomInfo {
     pub denom: String,
     pub sender: String,
