@@ -1,15 +1,17 @@
 use crate::{
     token::{Burn, Mint},
-    CwTokenResponse, CwTokenResult, Instantiate, Token, TransferFrom,
+    CwTokenError, CwTokenResponse, CwTokenResult, Instantiate, Send, Token, TransferFrom,
 };
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
-    from_binary, to_binary, Addr, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, QueryRequest,
-    Response, StdError, StdResult, Uint128, WasmMsg, WasmQuery,
+    from_binary, to_binary, wasm_execute, Addr, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, Event,
+    MessageInfo, QueryRequest, Reply, Response, StdError, StdResult, SubMsg, Uint128, WasmMsg,
+    WasmQuery,
 };
 use cw20::{BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
-use cw20_base::msg::InstantiateMsg;
 use cw_asset::AssetInfo;
+use cw_storage_plus::Item;
+use cw_utils::parse_reply_instantiate_data;
 use std::{convert::TryFrom, fmt::Display};
 
 #[cw_serde]
@@ -46,28 +48,55 @@ impl TryFrom<AssetInfo> for Cw20 {
     }
 }
 
-// ------ Implement Instantiate for Cw20Asset ------
+pub const REPLY_SAVE_CW20_ADDRESS: u64 = 14509;
+
+#[cw_serde]
+pub struct Cw20InitInfo {
+    code_id: u64,
+    admin: Option<String>,
+    funds: Vec<Coin>,
+    label: String,
+    init_msg: Binary,
+}
 
 impl Instantiate for Cw20 {
     fn instantiate(&self, _deps: DepsMut, init_info: Binary) -> CwTokenResponse {
-        let _msg: InstantiateMsg = from_binary(&init_info)?;
+        let msg: Cw20InitInfo = from_binary(&init_info)?;
 
-        //TODO: Where to store codeid?
-        // Ok(Response::new().add_message(wasm_instantiate(code_id, msg, vec![], msg.name)))
-        Ok(Response::default())
+        let init_msg = SubMsg::reply_always(
+            CosmosMsg::Wasm(WasmMsg::Instantiate {
+                admin: msg.admin,
+                code_id: msg.code_id,
+                msg: msg.init_msg,
+                funds: msg.funds,
+                label: msg.label.clone(),
+            }),
+            REPLY_SAVE_CW20_ADDRESS,
+        );
+        let init_event = Event::new("create_cw20").add_attribute("label", msg.label);
+
+        Ok(Response::new()
+            .add_submessage(init_msg)
+            .add_event(init_event))
     }
 
-    fn save_token(
-        _deps: DepsMut,
-        _env: &Env,
-        _reply: &cosmwasm_std::Reply,
-        _item: &cw_storage_plus::Item<Self>,
-    ) -> CwTokenResponse {
-        todo!()
+    fn save_token(deps: DepsMut, _env: &Env, reply: &Reply, item: &Item<Self>) -> CwTokenResponse {
+        match reply.id {
+            REPLY_SAVE_CW20_ADDRESS => {
+                let res = parse_reply_instantiate_data(reply.clone())?;
+
+                let addr = deps.api.addr_validate(&res.contract_address)?;
+
+                item.save(deps.storage, &Self(addr.clone()))?;
+
+                Ok(Response::new()
+                    .add_attribute("action", "save_cw20_addr")
+                    .add_attribute("contract_addr", &addr))
+            }
+            _ => Err(CwTokenError::InvalidReplyId {}),
+        }
     }
 }
-
-pub const REPLY_SAVE_CW20_ADDRESS: u64 = 14509;
 
 impl Token for Cw20 {
     fn transfer<A: Into<String>>(
@@ -128,6 +157,50 @@ impl TransferFrom for Cw20 {
                 funds: vec![],
             })),
         )
+    }
+}
+
+impl Send for Cw20 {
+    fn send<A: Into<String>>(
+        &self,
+        _deps: DepsMut,
+        _env: Env,
+        _info: MessageInfo,
+        contract: A,
+        amount: Uint128,
+        msg: Binary,
+    ) -> CwTokenResponse {
+        Ok(Response::new().add_message(wasm_execute(
+            self.0.to_string(),
+            &Cw20ExecuteMsg::Send {
+                contract: contract.into(),
+                amount,
+                msg,
+            },
+            vec![],
+        )?))
+    }
+
+    fn send_from<A: Into<String>>(
+        &self,
+        _deps: DepsMut,
+        _env: Env,
+        _info: MessageInfo,
+        owner: A,
+        contract: A,
+        amount: Uint128,
+        msg: Binary,
+    ) -> CwTokenResponse {
+        Ok(Response::new().add_message(wasm_execute(
+            self.0.to_string(),
+            &Cw20ExecuteMsg::SendFrom {
+                owner: owner.into(),
+                contract: contract.into(),
+                amount,
+                msg,
+            },
+            vec![],
+        )?))
     }
 }
 

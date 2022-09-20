@@ -18,3 +18,4 @@ serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 thiserror = {version = "1.0.31"}
 cw-asset = "2.3.0"
 cosmwasm-schema = { version = "1.1.0" }
+cw-utils = "0.15.0"

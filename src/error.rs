@@ -1,5 +1,6 @@
 use cosmwasm_std::{Response, StdError};
 use cw20_base::ContractError as Cw20ContractError;
+use cw_utils::ParseReplyError;
 use thiserror::Error;
 
 /// ## Description
@@ -13,6 +14,9 @@ pub enum CwTokenError {
     /// Invalid Reply ID Error
     #[error("invalid reply id")]
     InvalidReplyId {},
+
+    #[error("{0}")]
+    ParseReplyError(#[from] ParseReplyError),
 
     #[error("{0}")]
     Cw20ContractError(#[from] Cw20ContractError),
