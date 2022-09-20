@@ -1,13 +1,13 @@
 use crate::token::{Burn, Instantiate, Mint};
 use crate::utils::unwrap_reply;
-use crate::{CwTokenError, Token};
+use crate::{CwTokenError, CwTokenResponse, CwTokenResult, Token};
 use apollo_proto_rust::cosmos::base::v1beta1::Coin as CoinMsg;
 use apollo_proto_rust::osmosis::tokenfactory::v1beta1::{MsgBurn, MsgCreateDenom, MsgMint};
 use apollo_proto_rust::utils::encode;
 use apollo_proto_rust::OsmosisTypeURLs;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
-    from_binary, BankMsg, Binary, Coin, CosmosMsg, DepsMut, Env, Event, QuerierWrapper, Reply,
+    from_binary, BankMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, Event, MessageInfo, Reply,
     Response, StdError, StdResult, SubMsg, SubMsgResponse, Uint128,
 };
 use cw_asset::AssetInfo;
@@ -64,7 +64,14 @@ impl TryFrom<&AssetInfo> for OsmosisDenom {
 }
 
 impl Token for OsmosisDenom {
-    fn transfer<A: Into<String>>(&self, to: A, amount: Uint128) -> StdResult<Response> {
+    fn transfer<A: Into<String>>(
+        &self,
+        _deps: DepsMut,
+        _env: Env,
+        _info: MessageInfo,
+        to: A,
+        amount: Uint128,
+    ) -> CwTokenResponse {
         Ok(Response::new().add_message(CosmosMsg::Bank(BankMsg::Send {
             to_address: to.into(),
             amount: vec![Coin {
@@ -74,12 +81,8 @@ impl Token for OsmosisDenom {
         })))
     }
 
-    fn query_balance<A: Into<String>>(
-        &self,
-        querier: &QuerierWrapper,
-        address: A,
-    ) -> StdResult<Uint128> {
-        Ok(querier.query_balance(address, self.0.clone())?.amount)
+    fn query_balance<A: Into<String>>(&self, deps: Deps, address: A) -> CwTokenResult<Uint128> {
+        Ok(deps.querier.query_balance(address, self.0.clone())?.amount)
     }
 
     fn is_native() -> bool {
@@ -90,10 +93,11 @@ impl Token for OsmosisDenom {
 impl Mint for OsmosisDenom {
     fn mint<A: Into<String>, B: Into<String>>(
         &self,
+        _deps: DepsMut,
         sender: A,
         recipient: B,
         amount: Uint128,
-    ) -> StdResult<Response> {
+    ) -> CwTokenResponse {
         Ok(Response::new().add_messages(vec![
             CosmosMsg::Stargate {
                 type_url: OsmosisTypeURLs::Mint.to_string(),
@@ -117,7 +121,14 @@ impl Mint for OsmosisDenom {
 }
 
 impl Burn for OsmosisDenom {
-    fn burn<A: Into<String>>(&self, sender: A, amount: Uint128) -> StdResult<Response> {
+    fn burn<A: Into<String>>(
+        &self,
+        _deps: DepsMut,
+        _env: Env,
+        _info: MessageInfo,
+        sender: A,
+        amount: Uint128,
+    ) -> CwTokenResponse {
         Ok(Response::new().add_message(CosmosMsg::Stargate {
             type_url: OsmosisTypeURLs::Burn.to_string(),
             value: encode(MsgBurn {
@@ -156,7 +167,7 @@ fn parse_osmosis_denom_from_instantiate_event(response: SubMsgResponse) -> StdRe
 }
 
 impl Instantiate for OsmosisDenom {
-    fn instantiate(&self, init_info: Binary) -> StdResult<Response> {
+    fn instantiate(&self, _deps: DepsMut, init_info: Binary) -> CwTokenResponse {
         // Deserialize the init info binary
         let init_info: OsmosisDenomInfo = from_binary(&init_info).map_err(|e| {
             StdError::generic_err(format!("failed to deserialize init info: {}", e))
@@ -206,3 +217,7 @@ impl Instantiate for OsmosisDenom {
 // * Verify owner function on OsmosisDenom
 // * More useful functions?
 // * Implement queries as trait
+
+//--------------------------------------------------------------------------------------------------
+// Tests
+//--------------------------------------------------------------------------------------------------
