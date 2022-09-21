@@ -1,5 +1,5 @@
-use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Reply, Uint128};
-use cw_storage_plus::Item;
+use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Uint128};
+
 use std::fmt::Display;
 
 use crate::{CwTokenResponse, CwTokenResult};
@@ -7,15 +7,15 @@ use crate::{CwTokenResponse, CwTokenResult};
 /// A trait encapsulating the behavior necessary for instantiation of a token.
 pub trait Instantiate: Sized {
     /// Instantiate a new token. This function should be called in the `instantiate`
-    /// entry point of the contract before calling Self::save_token` in the `reply`
-    /// entry point, to instantiate a new token and save it to storage.
+    /// entry point of the contract, to instantiate a new token.
     ///
     /// ## Arguments
     /// - `init_info`: The information needed to instantiate the token as a Binary.
     ///        It is up to the implementation to deserialize this and to the caller
     ///        to serialize a proper struct matching the needs of specific implementation.
     ///        The reason this is binary is so that we don't need yet another generic
-    ///        argument.
+    ///        argument. It is optional as not all implementations need info to be
+    ///        able to initialize.
     ///
     /// ## Returns
     /// Returns a Response containing the messages to instantiate the token.
@@ -29,28 +29,11 @@ pub trait Instantiate: Sized {
     ///     info: MessageInfo,
     ///     msg: InstantiateMsg,
     /// ) -> Result<Response, ContractError> {
-    ///     MyToken::instantiate(deps, to_binary(&msg.init_info)?)
-    /// }
-    ///
-    /// #[cfg_attr(not(feature = "library"), entry_point)]
-    /// pub fn reply(deps: DepsMut, env: Env, reply: Reply) -> Result<Response, ContractError> {
-    ///     MyToken::save_token(deps, env, reply)
+    ///     let my_token = MyToken::new(...);
+    ///     my_token.instantiate(deps, to_binary(&msg.init_info)?)
     /// }
     /// ```
-    fn instantiate(deps: DepsMut, init_info: Binary) -> CwTokenResponse;
-
-    /// Saves the token to the storage in the provided `item`. This function should
-    /// be called in the `reply` entry point of the contract after `Self::instantiate`
-    /// has been called in the `instantiate` entry point.
-    ///
-    /// Arguments:
-    /// - reply: The reply received to the `reply` entry point.
-    /// - item: The `Item` to which the token should be saved.
-    ///
-    /// Returns a Response containing the messages to save the instantiated token.
-    fn save_token(deps: DepsMut, env: &Env, reply: &Reply, item: &Item<Self>) -> CwTokenResponse;
-
-    //fn set_admin_addr(&mut self, addr: &Addr);
+    fn instantiate(&self, deps: DepsMut, init_info: Option<Binary>) -> CwTokenResponse;
 }
 
 pub trait Token: Display {

@@ -2,8 +2,8 @@ use std::fmt::Display;
 
 use ::cw20::MarketingInfoResponse;
 use cosmwasm_std::{
-    from_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError,
-    StdResult, Uint128,
+    from_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
+    Uint128,
 };
 use cw20_base::{
     allowances::{execute_send_from, execute_transfer_from},
@@ -13,7 +13,6 @@ use cw20_base::{
     ContractError,
 };
 use cw_asset::AssetInfo;
-use cw_storage_plus::Item;
 
 use crate::{
     Burn, CwTokenError, CwTokenResponse, CwTokenResult, Instantiate, Mint, Send, Token,
@@ -184,8 +183,9 @@ impl Burn for Cw4626 {
 }
 
 impl Instantiate for Cw4626 {
-    fn instantiate(deps: DepsMut, init_info: Binary) -> CwTokenResponse {
-        let msg: InstantiateMsg = from_binary(&init_info)?;
+    fn instantiate(&self, deps: DepsMut, init_info: Option<Binary>) -> CwTokenResponse {
+        let msg: InstantiateMsg =
+            from_binary(&init_info.ok_or(StdError::generic_err("init_info requried for Cw4626"))?)?;
 
         // check valid token info
         msg.validate()?;
@@ -213,15 +213,6 @@ impl Instantiate for Cw4626 {
             MARKETING_INFO.save(deps.storage, &data)?;
         }
 
-        Ok(Response::default())
-    }
-
-    fn save_token(
-        _deps: DepsMut,
-        _env: &Env,
-        _reply: &Reply,
-        _item: &Item<Self>,
-    ) -> CwTokenResponse {
         Ok(Response::default())
     }
 }

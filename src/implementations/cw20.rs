@@ -59,9 +59,65 @@ pub struct Cw20InitInfo {
     init_msg: Binary,
 }
 
+/// We implement default so that you can call Cw20::default().instantiate(...)
+impl Default for Cw20 {
+    fn default() -> Self {
+        Self(Addr::unchecked(String::default()))
+    }
+}
+
+impl Cw20 {
+    pub fn new(address: Addr) -> Self {
+        Cw20(address)
+    }
+
+    /// Saves the token to the storage in the provided `item`. This function should
+    /// be called in the `reply` entry point of the contract after `Self::instantiate`
+    /// has been called in the `instantiate` entry point.
+    ///
+    /// Arguments:
+    /// - reply: The reply received to the `reply` entry point.
+    /// - item: The `Item` to which the token should be saved.
+    ///
+    /// Returns a Response containing the messages to save the instantiated token.
+    ///
+    /// This is needed because as opposed to OsmosisDenom and Cw4626, when
+    /// instantiating a Cw20 we don't know the address until after we receive a reply.
+    ///
+    /// ## Example
+    /// ```
+    /// #[cfg_attr(not(feature = "library"), entry_point)]
+    /// pub fn reply(deps: DepsMut, env: Env, reply: Reply) -> Result<Response, ContractError> {
+    ///     MyToken::save_token(deps, env, reply)
+    /// }
+    /// ```
+    pub fn save_token(
+        deps: DepsMut,
+        _env: &Env,
+        reply: &Reply,
+        item: &Item<Self>,
+    ) -> CwTokenResponse {
+        match reply.id {
+            REPLY_SAVE_CW20_ADDRESS => {
+                let res = parse_reply_instantiate_data(reply.clone())?;
+
+                let addr = deps.api.addr_validate(&res.contract_address)?;
+
+                item.save(deps.storage, &Self(addr.clone()))?;
+
+                Ok(Response::new()
+                    .add_attribute("action", "save_cw20_addr")
+                    .add_attribute("contract_addr", &addr))
+            }
+            _ => Err(CwTokenError::InvalidReplyId {}),
+        }
+    }
+}
+
 impl Instantiate for Cw20 {
-    fn instantiate(_deps: DepsMut, init_info: Binary) -> CwTokenResponse {
-        let msg: Cw20InitInfo = from_binary(&init_info)?;
+    fn instantiate(&self, _deps: DepsMut, init_info: Option<Binary>) -> CwTokenResponse {
+        let msg: Cw20InitInfo =
+            from_binary(&init_info.ok_or(StdError::generic_err("init_info requried for Cw20"))?)?;
 
         let init_msg = SubMsg::reply_always(
             CosmosMsg::Wasm(WasmMsg::Instantiate {
@@ -78,23 +134,6 @@ impl Instantiate for Cw20 {
         Ok(Response::new()
             .add_submessage(init_msg)
             .add_event(init_event))
-    }
-
-    fn save_token(deps: DepsMut, _env: &Env, reply: &Reply, item: &Item<Self>) -> CwTokenResponse {
-        match reply.id {
-            REPLY_SAVE_CW20_ADDRESS => {
-                let res = parse_reply_instantiate_data(reply.clone())?;
-
-                let addr = deps.api.addr_validate(&res.contract_address)?;
-
-                item.save(deps.storage, &Self(addr.clone()))?;
-
-                Ok(Response::new()
-                    .add_attribute("action", "save_cw20_addr")
-                    .add_attribute("contract_addr", &addr))
-            }
-            _ => Err(CwTokenError::InvalidReplyId {}),
-        }
     }
 }
 
