@@ -21,11 +21,11 @@ pub struct OsmosisDenom {
 }
 
 impl OsmosisDenom {
-    fn new(owner: String, subdenom: String) -> Self {
+    pub fn new(owner: String, subdenom: String) -> Self {
         OsmosisDenom { owner, subdenom }
     }
 
-    fn from_native_denom(denom: String) -> StdResult<Self> {
+    pub fn from_native_denom(denom: String) -> StdResult<Self> {
         let parts: Vec<_> = denom.split("/").collect();
 
         if parts.len() != 3 || parts[0] != "factory" {

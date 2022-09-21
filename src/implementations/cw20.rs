@@ -67,10 +67,6 @@ impl Default for Cw20 {
 }
 
 impl Cw20 {
-    pub fn new(address: Addr) -> Self {
-        Cw20(address)
-    }
-
     /// Saves the token to the storage in the provided `item`. This function should
     /// be called in the `reply` entry point of the contract after `Self::instantiate`
     /// has been called in the `instantiate` entry point.
