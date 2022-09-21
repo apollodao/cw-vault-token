@@ -37,7 +37,7 @@ pub trait Instantiate: Sized {
     ///     MyToken::save_token(deps, env, reply)
     /// }
     /// ```
-    fn instantiate(&self, deps: DepsMut, init_info: Binary) -> CwTokenResponse;
+    fn instantiate(deps: DepsMut, init_info: Binary) -> CwTokenResponse;
 
     /// Saves the token to the storage in the provided `item`. This function should
     /// be called in the `reply` entry point of the contract after `Self::instantiate`

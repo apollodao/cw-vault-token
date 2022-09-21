@@ -184,7 +184,7 @@ impl Burn for Cw4626 {
 }
 
 impl Instantiate for Cw4626 {
-    fn instantiate(&self, deps: DepsMut, init_info: Binary) -> CwTokenResponse {
+    fn instantiate(deps: DepsMut, init_info: Binary) -> CwTokenResponse {
         let msg: InstantiateMsg = from_binary(&init_info)?;
 
         // check valid token info

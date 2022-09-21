@@ -60,7 +60,7 @@ pub struct Cw20InitInfo {
 }
 
 impl Instantiate for Cw20 {
-    fn instantiate(&self, _deps: DepsMut, init_info: Binary) -> CwTokenResponse {
+    fn instantiate(_deps: DepsMut, init_info: Binary) -> CwTokenResponse {
         let msg: Cw20InitInfo = from_binary(&init_info)?;
 
         let init_msg = SubMsg::reply_always(

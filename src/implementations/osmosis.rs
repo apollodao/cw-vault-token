@@ -167,7 +167,7 @@ fn parse_osmosis_denom_from_instantiate_event(response: SubMsgResponse) -> StdRe
 }
 
 impl Instantiate for OsmosisDenom {
-    fn instantiate(&self, _deps: DepsMut, init_info: Binary) -> CwTokenResponse {
+    fn instantiate(_deps: DepsMut, init_info: Binary) -> CwTokenResponse {
         // Deserialize the init info binary
         let init_info: OsmosisDenomInfo = from_binary(&init_info).map_err(|e| {
             StdError::generic_err(format!("failed to deserialize init info: {}", e))
