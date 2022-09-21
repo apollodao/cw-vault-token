@@ -5,7 +5,7 @@ use std::fmt::Display;
 use crate::{CwTokenResponse, CwTokenResult};
 
 /// A trait encapsulating the behavior necessary for instantiation of a token.
-pub trait Instantiate: Sized {
+pub trait Instantiate {
     /// Instantiate a new token. This function should be called in the `instantiate`
     /// entry point of the contract, to instantiate a new token.
     ///

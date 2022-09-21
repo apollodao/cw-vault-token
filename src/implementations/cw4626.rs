@@ -1,6 +1,7 @@
 use std::fmt::Display;
 
 use ::cw20::MarketingInfoResponse;
+use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
     from_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
     Uint128,
@@ -19,6 +20,7 @@ use crate::{
     TransferFrom,
 };
 
+#[cw_serde]
 pub struct Cw4626(pub Addr);
 
 impl Display for Cw4626 {
