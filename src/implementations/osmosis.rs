@@ -155,11 +155,6 @@ impl Burn for OsmosisDenom {
         }))
     }
 }
-#[cw_serde]
-pub struct OsmosisDenomInfo {
-    pub denom: String,
-    pub sender: String,
-}
 
 impl Instantiate for OsmosisDenom {
     fn instantiate(&self, _deps: DepsMut, _init_info: Option<Binary>) -> CwTokenResponse {
