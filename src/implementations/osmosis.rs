@@ -1,13 +1,13 @@
 use crate::token::{Burn, Instantiate, Mint};
-use crate::{CwTokenResponse, CwTokenResult, Token};
+use crate::{CwTokenResponse, CwTokenResult, Token, TokenStorage};
 use apollo_proto_rust::cosmos::base::v1beta1::Coin as CoinMsg;
 use apollo_proto_rust::osmosis::tokenfactory::v1beta1::{MsgBurn, MsgCreateDenom, MsgMint};
 use apollo_proto_rust::utils::encode;
 use apollo_proto_rust::OsmosisTypeURLs;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
-    BankMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, Event, MessageInfo, Response, StdError,
-    StdResult, Uint128,
+    from_binary, BankMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, Event, MessageInfo,
+    Response, StdError, StdResult, Uint128,
 };
 use cw_asset::AssetInfo;
 
@@ -156,18 +156,38 @@ impl Burn for OsmosisDenom {
     }
 }
 
+#[cw_serde]
+pub struct OsmosisDenomInitInfo {
+    pub symbol: String,
+}
+
 impl Instantiate for OsmosisDenom {
-    fn instantiate(&self, _deps: DepsMut, _init_info: Option<Binary>) -> CwTokenResponse {
+    fn instantiate(deps: DepsMut, env: &Env, init_info: Option<Binary>) -> CwTokenResponse {
+        let msg: OsmosisDenomInitInfo = from_binary(
+            &init_info.ok_or(StdError::generic_err("init_info required for OsmosisDenom"))?,
+        )?;
+
+        let osmosis_denom = OsmosisDenom {
+            owner: env.contract.address.to_string(),
+            subdenom: msg.symbol,
+        };
+
+        // create denom with Osmosis Token Factory
         let init_msg = CosmosMsg::Stargate {
             type_url: OsmosisTypeURLs::CreateDenom.to_string(),
             value: encode(MsgCreateDenom {
-                sender: self.owner.clone(),
-                subdenom: self.subdenom.clone(),
+                sender: osmosis_denom.owner.to_string(),
+                subdenom: osmosis_denom.subdenom.to_string(),
             }),
         };
 
-        let init_event =
-            Event::new("apollo/cw-token/instantiate").add_attribute("denom", self.to_string());
+        // Store denom in contract state
+        osmosis_denom.save(deps.storage)?;
+
+        let init_event = Event::new("apollo/cw-token/instantiate")
+            .add_attribute("denom", osmosis_denom.to_string());
         Ok(Response::new().add_message(init_msg).add_event(init_event))
     }
 }
+
+impl TokenStorage for OsmosisDenom {}

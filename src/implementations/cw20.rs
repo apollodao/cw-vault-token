@@ -111,7 +111,7 @@ impl Cw20 {
 }
 
 impl Instantiate for Cw20 {
-    fn instantiate(&self, _deps: DepsMut, init_info: Option<Binary>) -> CwTokenResponse {
+    fn instantiate(_deps: DepsMut, _env: &Env, init_info: Option<Binary>) -> CwTokenResponse {
         let msg: Cw20InitInfo =
             from_binary(&init_info.ok_or(StdError::generic_err("init_info requried for Cw20"))?)?;
 

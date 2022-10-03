@@ -33,7 +33,7 @@ pub trait Instantiate {
     ///     my_token.instantiate(deps, to_binary(&msg.init_info)?)
     /// }
     /// ```
-    fn instantiate(&self, deps: DepsMut, init_info: Option<Binary>) -> CwTokenResponse;
+    fn instantiate(deps: DepsMut, env: &Env, init_info: Option<Binary>) -> CwTokenResponse;
 }
 
 pub trait Token: Display {

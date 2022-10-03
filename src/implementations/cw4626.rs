@@ -185,7 +185,7 @@ impl Burn for Cw4626 {
 }
 
 impl Instantiate for Cw4626 {
-    fn instantiate(&self, deps: DepsMut, init_info: Option<Binary>) -> CwTokenResponse {
+    fn instantiate(deps: DepsMut, _env: &Env, init_info: Option<Binary>) -> CwTokenResponse {
         let msg: InstantiateMsg =
             from_binary(&init_info.ok_or(StdError::generic_err("init_info requried for Cw4626"))?)?;
 
