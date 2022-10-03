@@ -1,6 +1,7 @@
 use crate::{
     token::{Burn, Mint},
-    CwTokenError, CwTokenResponse, CwTokenResult, Instantiate, Send, Token, TransferFrom,
+    CwTokenError, CwTokenResponse, CwTokenResult, Instantiate, Send, Token, TokenStorage,
+    TransferFrom,
 };
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
@@ -10,7 +11,6 @@ use cosmwasm_std::{
 };
 use cw20::{BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
 use cw_asset::AssetInfo;
-use cw_storage_plus::Item;
 use cw_utils::parse_reply_instantiate_data;
 use std::{convert::TryFrom, fmt::Display};
 
@@ -48,8 +48,6 @@ impl TryFrom<AssetInfo> for Cw20 {
     }
 }
 
-pub const REPLY_SAVE_CW20_ADDRESS: u64 = 14509;
-
 #[cw_serde]
 pub struct Cw20InitInfo {
     code_id: u64,
@@ -66,49 +64,7 @@ impl Default for Cw20 {
     }
 }
 
-impl Cw20 {
-    /// Saves the token to the storage in the provided `item`. This function should
-    /// be called in the `reply` entry point of the contract after `Self::instantiate`
-    /// has been called in the `instantiate` entry point.
-    ///
-    /// Arguments:
-    /// - reply: The reply received to the `reply` entry point.
-    /// - item: The `Item` to which the token should be saved.
-    ///
-    /// Returns a Response containing the messages to save the instantiated token.
-    ///
-    /// This is needed because as opposed to OsmosisDenom and Cw4626, when
-    /// instantiating a Cw20 we don't know the address until after we receive a reply.
-    ///
-    /// ## Example
-    /// ```
-    /// #[cfg_attr(not(feature = "library"), entry_point)]
-    /// pub fn reply(deps: DepsMut, env: Env, reply: Reply) -> Result<Response, ContractError> {
-    ///     MyToken::save_token(deps, env, reply)
-    /// }
-    /// ```
-    pub fn save_token(
-        deps: DepsMut,
-        _env: &Env,
-        reply: &Reply,
-        item: &Item<Self>,
-    ) -> CwTokenResponse {
-        match reply.id {
-            REPLY_SAVE_CW20_ADDRESS => {
-                let res = parse_reply_instantiate_data(reply.clone())?;
-
-                let addr = deps.api.addr_validate(&res.contract_address)?;
-
-                item.save(deps.storage, &Self(addr.clone()))?;
-
-                Ok(Response::new()
-                    .add_attribute("action", "save_cw20_addr")
-                    .add_attribute("contract_addr", &addr))
-            }
-            _ => Err(CwTokenError::InvalidReplyId {}),
-        }
-    }
-}
+pub const REPLY_SAVE_CW20_ADDRESS: u64 = 14509;
 
 impl Instantiate for Cw20 {
     fn instantiate(_deps: DepsMut, _env: &Env, init_info: Option<Binary>) -> CwTokenResponse {
@@ -130,6 +86,23 @@ impl Instantiate for Cw20 {
         Ok(Response::new()
             .add_submessage(init_msg)
             .add_event(init_event))
+    }
+
+    fn reply_save_token(deps: DepsMut, _env: &Env, reply: &Reply) -> CwTokenResponse {
+        match reply.id {
+            REPLY_SAVE_CW20_ADDRESS => {
+                let res = parse_reply_instantiate_data(reply.clone())?;
+
+                let addr = deps.api.addr_validate(&res.contract_address)?;
+
+                Cw20(addr.to_owned()).save(deps.storage)?;
+
+                Ok(Response::new()
+                    .add_attribute("action", "save_cw20_addr")
+                    .add_attribute("contract_addr", &addr))
+            }
+            _ => Err(CwTokenError::InvalidReplyId {}),
+        }
     }
 }
 
@@ -278,3 +251,5 @@ impl Burn for Cw20 {
         )
     }
 }
+
+impl TokenStorage for Cw20 {}

@@ -1,4 +1,4 @@
-use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Uint128};
+use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Reply, Uint128};
 
 use std::fmt::Display;
 
@@ -34,6 +34,30 @@ pub trait Instantiate {
     /// }
     /// ```
     fn instantiate(deps: DepsMut, env: &Env, init_info: Option<Binary>) -> CwTokenResponse;
+
+    /// Saves the token to the storage in the provided `item`. This function should
+    /// be called in the `reply` entry point of the contract after `Self::instantiate`
+    /// has been called in the `instantiate` entry point.
+    ///
+    /// Arguments:
+    /// - reply: The reply received to the `reply` entry point.
+    /// - item: The `Item` to which the token should be saved.
+    ///
+    /// Returns a Response containing the messages to save the instantiated token.
+    ///
+    /// This is needed because as opposed to OsmosisDenom and Cw4626, when
+    /// instantiating a Cw20 we don't know the address until after we receive a reply.
+    ///
+    /// ## Example
+    /// ```
+    /// #[cfg_attr(not(feature = "library"), entry_point)]
+    /// pub fn reply(deps: DepsMut, env: Env, reply: Reply) -> Result<Response, ContractError> {
+    ///     MyToken::reply_save_token(deps, env, reply)
+    /// }
+    /// ```
+    fn reply_save_token(_deps: DepsMut, _env: &Env, _reply: &Reply) -> CwTokenResponse {
+        unimplemented!()
+    }
 }
 
 pub trait Token: Display {
