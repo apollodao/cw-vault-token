@@ -52,11 +52,11 @@ pub const REPLY_SAVE_CW20_ADDRESS: u64 = 14509;
 
 #[cw_serde]
 pub struct Cw20InitInfo {
-    code_id: u64,
-    admin: Option<String>,
-    funds: Vec<Coin>,
-    label: String,
-    init_msg: Binary,
+    pub code_id: u64,
+    pub admin: Option<String>,
+    pub funds: Vec<Coin>,
+    pub label: String,
+    pub init_msg: Binary,
 }
 
 /// We implement default so that you can call Cw20::default().instantiate(...)
