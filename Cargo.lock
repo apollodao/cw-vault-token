@@ -11,7 +11,7 @@ checksum = "98161a4e3e2184da77bb14f02184cdd111e83bbbcc9979dfee3c44b9a85f5602"
 [[package]]
 name = "apollo-proto-rust"
 version = "0.2.0"
-source = "git+https://github.com/apollodao/apollo-proto-rust?tag=v0.2.0#c32895a6f1c70337beed43ebc8e59034a8547610"
+source = "git+https://github.com/apollodao/apollo-proto-rust?tag=v0.3.0#3e77287172d7e96485465f2288d5c0eafc80f9c5"
 dependencies = [
  "cosmwasm-std",
  "prost",
