@@ -16,8 +16,8 @@ use cw20_base::{
 use cw_asset::AssetInfo;
 
 use crate::{
-    Burn, CwTokenError, CwTokenResponse, CwTokenResult, Instantiate, Mint, Send, Token,
-    TransferFrom,
+    AssertReceived, Burn, CwTokenError, CwTokenResponse, CwTokenResult, Instantiate, Mint, Send,
+    Token, TransferFrom,
 };
 
 #[cw_serde]
@@ -130,17 +130,17 @@ impl Send for Cw4626 {
 /// calling the function, i.e. make sure that the recipient has sent sufficient
 /// assets to the vault, or perform a transfer_from, or similar.
 impl Mint for Cw4626 {
-    fn mint<A: Into<String>, B: Into<String>>(
+    fn mint(
         &self,
         deps: DepsMut,
-        _sender: A,
-        recipient: B,
+        _env: &Env,
+        recipient: &Addr,
         amount: Uint128,
     ) -> CwTokenResponse {
         // Here we must copy-paste the code from cw20_base, because cw20 base does not
         // allow anyone to mint, and here we want anyone to be able to mint as long as
         // they deposit the correct depositable assets
-        let recipient: String = recipient.into();
+        let recipient: String = recipient.to_string();
 
         if amount == Uint128::zero() {
             return Err(ContractError::InvalidZeroAmount {}.into());
@@ -172,15 +172,14 @@ impl Mint for Cw4626 {
 }
 
 impl Burn for Cw4626 {
-    fn burn<A: Into<String>>(
+    fn burn(
         &self,
         deps: DepsMut,
-        env: Env,
-        info: MessageInfo,
-        _sender: A,
+        env: &Env,
+        info: &MessageInfo,
         amount: Uint128,
     ) -> CwTokenResponse {
-        Ok(execute_burn(deps, env, info, amount)?)
+        Ok(execute_burn(deps, env.clone(), info.clone(), amount)?)
     }
 }
 
@@ -216,5 +215,21 @@ impl Instantiate for Cw4626 {
         }
 
         Ok(Response::default())
+    }
+}
+
+impl AssertReceived for Cw4626 {
+    fn assert_received(&self, deps: Deps, info: &MessageInfo, amount: Uint128) -> StdResult<()> {
+        let balance = BALANCES
+            .may_load(deps.storage, &info.sender)?
+            .unwrap_or_default();
+
+        if balance != amount {
+            return Err(StdError::generic_err(format!(
+                "Tried to use {} tokens, but only {} tokens are available",
+                amount, balance
+            )));
+        }
+        Ok(())
     }
 }

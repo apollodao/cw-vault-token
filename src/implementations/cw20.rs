@@ -240,18 +240,18 @@ impl Send for Cw20 {
 }
 
 impl Mint for Cw20 {
-    fn mint<A: Into<String>, B: Into<String>>(
+    fn mint(
         &self,
         _deps: DepsMut,
-        _sender: A,
-        recipient: B,
+        _env: &Env,
+        recipient: &Addr,
         amount: Uint128,
     ) -> CwTokenResponse {
         Ok(
             Response::new().add_message(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: self.0.to_string(),
                 msg: to_binary(&Cw20ExecuteMsg::Mint {
-                    recipient: recipient.into(),
+                    recipient: recipient.to_string(),
                     amount,
                 })?,
                 funds: vec![],
@@ -261,12 +261,11 @@ impl Mint for Cw20 {
 }
 
 impl Burn for Cw20 {
-    fn burn<A: Into<String>>(
+    fn burn(
         &self,
         _deps: DepsMut,
-        _env: Env,
-        _info: MessageInfo,
-        _sender: A,
+        _env: &Env,
+        _info: &MessageInfo,
         amount: Uint128,
     ) -> CwTokenResponse {
         Ok(

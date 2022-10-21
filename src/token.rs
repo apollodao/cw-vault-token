@@ -1,4 +1,4 @@
-use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Uint128};
+use cosmwasm_std::{Addr, Binary, Deps, DepsMut, Env, MessageInfo, StdResult, Uint128};
 
 use std::fmt::Display;
 
@@ -87,22 +87,23 @@ pub trait TransferFrom {
 }
 
 pub trait Mint {
-    fn mint<A: Into<String>, B: Into<String>>(
+    fn mint(&self, deps: DepsMut, env: &Env, recipient: &Addr, amount: Uint128) -> CwTokenResponse;
+}
+
+pub trait Burn {
+    fn burn(
         &self,
         deps: DepsMut,
-        sender: A,
-        recipient: B,
+        env: &Env,
+        info: &MessageInfo,
         amount: Uint128,
     ) -> CwTokenResponse;
 }
 
-pub trait Burn {
-    fn burn<A: Into<String>>(
-        &self,
-        deps: DepsMut,
-        env: Env,
-        info: MessageInfo,
-        sender: A,
-        amount: Uint128,
-    ) -> CwTokenResponse;
+// Validates that the `amount` amount of tokens were received by the contract.
+// E.g. if it is a native token, assert that this amount exists in info.funds,
+// and that if it is a Cw4626 that the user has this amount of tokens in their
+// balance.
+pub trait AssertReceived {
+    fn assert_received(&self, deps: Deps, info: &MessageInfo, amount: Uint128) -> StdResult<()>;
 }
