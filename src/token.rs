@@ -2,7 +2,17 @@ use cosmwasm_std::{Addr, Binary, Deps, DepsMut, Env, MessageInfo, StdResult, Uin
 
 use std::fmt::Display;
 
-use crate::{CwTokenResponse, CwTokenResult};
+use crate::{cw4626::Cw4626, osmosis::OsmosisDenom, CwTokenResponse, CwTokenResult};
+
+/// Combined trait for implementations that can be used as a vault token.
+pub trait VaultToken: Mint + Burn + Token + Display + AssertReceived {}
+
+/// We currently only implement VaultToken for OsmosisDenom and Cw4626, because
+/// we use AssertReceived which cannot be implemented for CW20 in a clean way
+/// since there we need to do TransferFrom to transfer the CW20 tokens to the
+/// vault contract.
+impl VaultToken for OsmosisDenom {}
+impl VaultToken for Cw4626 {}
 
 /// A trait encapsulating the behavior necessary for instantiation of a token.
 pub trait Instantiate {
@@ -36,7 +46,7 @@ pub trait Instantiate {
     fn instantiate(&self, deps: DepsMut, init_info: Option<Binary>) -> CwTokenResponse;
 }
 
-pub trait Token: Display {
+pub trait Token {
     fn transfer<A: Into<String>>(
         &self,
         deps: DepsMut,
