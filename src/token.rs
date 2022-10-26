@@ -5,6 +5,11 @@ use std::fmt::Display;
 use crate::{cw4626::Cw4626, osmosis::OsmosisDenom, CwTokenResponse, CwTokenResult};
 
 /// Combined trait for implementations that can be used as a vault token.
+///
+/// Instantiate is not required here since Cw4626 does not require any specific
+/// instantiation. Osmosis does require instantiation, but this can simply be
+/// handled in the top contract.rs where we know that the VaultToken is an
+/// OsmosisDenom.
 pub trait VaultToken: Mint + Burn + Token + Display + AssertReceived {}
 
 /// We currently only implement VaultToken for OsmosisDenom and Cw4626, because
