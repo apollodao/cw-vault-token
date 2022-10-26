@@ -7,8 +7,7 @@ use cosmwasm_std::{
     Uint128,
 };
 use cw20_base::{
-    allowances::{execute_send_from, execute_transfer_from},
-    contract::{execute_burn, execute_send, execute_transfer, query_balance},
+    contract::{execute_burn, execute_transfer, query_balance},
     msg::InstantiateMsg,
     state::{TokenInfo, BALANCES, MARKETING_INFO, TOKEN_INFO},
     ContractError,
@@ -16,8 +15,7 @@ use cw20_base::{
 use cw_asset::AssetInfo;
 
 use crate::{
-    AssertReceived, Burn, CwTokenError, CwTokenResponse, CwTokenResult, Instantiate, Mint, Send,
-    Token, TransferFrom,
+    AssertReceived, Burn, CwTokenError, CwTokenResponse, CwTokenResult, Instantiate, Mint, Token,
 };
 
 #[cw_serde]
@@ -66,62 +64,6 @@ impl Token for Cw4626 {
 
     fn is_native() -> bool {
         false
-    }
-}
-
-impl TransferFrom for Cw4626 {
-    fn transfer_from<A: Into<String>, B: Into<String>>(
-        &self,
-        deps: DepsMut,
-        env: Env,
-        info: MessageInfo,
-        from: A,
-        to: B,
-        amount: Uint128,
-    ) -> CwTokenResponse {
-        Ok(execute_transfer_from(
-            deps,
-            env,
-            info,
-            from.into(),
-            to.into(),
-            amount,
-        )?)
-    }
-}
-
-impl Send for Cw4626 {
-    fn send<A: Into<String>>(
-        &self,
-        deps: DepsMut,
-        env: Env,
-        info: MessageInfo,
-        contract: A,
-        amount: Uint128,
-        msg: Binary,
-    ) -> CwTokenResponse {
-        Ok(execute_send(deps, env, info, contract.into(), amount, msg)?)
-    }
-
-    fn send_from<A: Into<String>>(
-        &self,
-        deps: DepsMut,
-        env: Env,
-        info: MessageInfo,
-        owner: A,
-        contract: A,
-        amount: Uint128,
-        msg: Binary,
-    ) -> CwTokenResponse {
-        Ok(execute_send_from(
-            deps,
-            env,
-            info,
-            owner.into(),
-            contract.into(),
-            amount,
-            msg,
-        )?)
     }
 }
 

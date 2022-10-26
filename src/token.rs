@@ -51,41 +51,6 @@ pub trait Token: Display {
     fn is_native() -> bool;
 }
 
-pub trait Send {
-    fn send<A: Into<String>>(
-        &self,
-        deps: DepsMut,
-        env: Env,
-        info: MessageInfo,
-        contract: A,
-        amount: Uint128,
-        msg: Binary,
-    ) -> CwTokenResponse;
-
-    fn send_from<A: Into<String>>(
-        &self,
-        deps: DepsMut,
-        env: Env,
-        info: MessageInfo,
-        owner: A,
-        contract: A,
-        amount: Uint128,
-        msg: Binary,
-    ) -> CwTokenResponse;
-}
-
-pub trait TransferFrom {
-    fn transfer_from<A: Into<String>, B: Into<String>>(
-        &self,
-        deps: DepsMut,
-        env: Env,
-        info: MessageInfo,
-        _from: A,
-        _to: B,
-        _amount: Uint128,
-    ) -> CwTokenResponse;
-}
-
 pub trait Mint {
     fn mint(&self, deps: DepsMut, env: &Env, recipient: &Addr, amount: Uint128) -> CwTokenResponse;
 }

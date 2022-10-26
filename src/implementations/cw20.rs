@@ -1,12 +1,11 @@
 use crate::{
     token::{Burn, Mint},
-    CwTokenError, CwTokenResponse, CwTokenResult, Instantiate, Send, Token, TransferFrom,
+    CwTokenError, CwTokenResponse, CwTokenResult, Instantiate, Token,
 };
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
-    from_binary, to_binary, wasm_execute, Addr, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, Event,
-    MessageInfo, QueryRequest, Reply, Response, StdError, StdResult, SubMsg, Uint128, WasmMsg,
-    WasmQuery,
+    from_binary, to_binary, Addr, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, Event, MessageInfo,
+    QueryRequest, Reply, Response, StdError, StdResult, SubMsg, Uint128, WasmMsg, WasmQuery,
 };
 use cw20::{BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
 use cw_asset::AssetInfo;
@@ -168,74 +167,6 @@ impl Token for Cw20 {
 
     fn is_native() -> bool {
         false
-    }
-}
-
-impl TransferFrom for Cw20 {
-    fn transfer_from<A: Into<String>, B: Into<String>>(
-        &self,
-        _deps: DepsMut,
-        _env: Env,
-        _info: MessageInfo,
-        from: A,
-        to: B,
-        amount: Uint128,
-    ) -> CwTokenResponse {
-        Ok(
-            Response::new().add_message(CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: self.0.to_string(),
-                msg: to_binary(&Cw20ExecuteMsg::TransferFrom {
-                    owner: from.into(),
-                    recipient: to.into(),
-                    amount,
-                })?,
-                funds: vec![],
-            })),
-        )
-    }
-}
-
-impl Send for Cw20 {
-    fn send<A: Into<String>>(
-        &self,
-        _deps: DepsMut,
-        _env: Env,
-        _info: MessageInfo,
-        contract: A,
-        amount: Uint128,
-        msg: Binary,
-    ) -> CwTokenResponse {
-        Ok(Response::new().add_message(wasm_execute(
-            self.0.to_string(),
-            &Cw20ExecuteMsg::Send {
-                contract: contract.into(),
-                amount,
-                msg,
-            },
-            vec![],
-        )?))
-    }
-
-    fn send_from<A: Into<String>>(
-        &self,
-        _deps: DepsMut,
-        _env: Env,
-        _info: MessageInfo,
-        owner: A,
-        contract: A,
-        amount: Uint128,
-        msg: Binary,
-    ) -> CwTokenResponse {
-        Ok(Response::new().add_message(wasm_execute(
-            self.0.to_string(),
-            &Cw20ExecuteMsg::SendFrom {
-                owner: owner.into(),
-                contract: contract.into(),
-                amount,
-                msg,
-            },
-            vec![],
-        )?))
     }
 }
 
