@@ -6,8 +6,8 @@ use apollo_proto_rust::utils::encode;
 use apollo_proto_rust::OsmosisTypeURLs;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
-    Addr, BankMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, Event, MessageInfo, Response,
-    StdError, StdResult, Uint128,
+    Addr, BankMsg, BankQuery, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, Event, MessageInfo,
+    QueryRequest, Response, StdError, StdResult, SupplyResponse, Uint128,
 };
 use cw_asset::AssetInfo;
 
@@ -96,6 +96,16 @@ impl Token for OsmosisDenom {
         Ok(deps
             .querier
             .query_balance(address, self.to_string())?
+            .amount)
+    }
+
+    fn query_total_supply(&self, deps: Deps) -> CwTokenResult<Uint128> {
+        Ok(deps
+            .querier
+            .query::<SupplyResponse>(&QueryRequest::Bank(BankQuery::Supply {
+                denom: self.to_string(),
+            }))?
+            .amount
             .amount)
     }
 
