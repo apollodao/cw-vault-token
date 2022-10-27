@@ -7,7 +7,7 @@ use cosmwasm_std::{
     from_binary, to_binary, Addr, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, Event, MessageInfo,
     QueryRequest, Reply, Response, StdError, StdResult, SubMsg, Uint128, WasmMsg, WasmQuery,
 };
-use cw20::{BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
+use cw20::{BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg, TokenInfoResponse};
 use cw_asset::AssetInfo;
 use cw_storage_plus::Item;
 use cw_utils::parse_reply_instantiate_data;
@@ -163,6 +163,16 @@ impl Token for Cw20 {
                 })?,
             }))?
             .balance)
+    }
+
+    fn query_total_supply(&self, deps: Deps) -> CwTokenResult<Uint128> {
+        Ok(deps
+            .querier
+            .query::<TokenInfoResponse>(&QueryRequest::Wasm(WasmQuery::Smart {
+                contract_addr: self.0.to_string(),
+                msg: to_binary(&Cw20QueryMsg::TokenInfo {})?,
+            }))?
+            .total_supply)
     }
 
     fn is_native() -> bool {

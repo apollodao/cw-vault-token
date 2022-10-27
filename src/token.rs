@@ -63,6 +63,8 @@ pub trait Token {
 
     fn query_balance<A: Into<String>>(&self, deps: Deps, address: A) -> CwTokenResult<Uint128>;
 
+    fn query_total_supply(&self, deps: Deps) -> CwTokenResult<Uint128>;
+
     fn is_native() -> bool;
 }
 
