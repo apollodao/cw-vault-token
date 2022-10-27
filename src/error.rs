@@ -22,5 +22,11 @@ pub enum CwTokenError {
     Cw20ContractError(#[from] Cw20ContractError),
 }
 
+impl From<CwTokenError> for StdError {
+    fn from(e: CwTokenError) -> Self {
+        StdError::generic_err(e.to_string())
+    }
+}
+
 pub type CwTokenResult<T> = Result<T, CwTokenError>;
 pub type CwTokenResponse = CwTokenResult<Response>;
