@@ -10,7 +10,7 @@ use crate::{cw4626::Cw4626, osmosis::OsmosisDenom, CwTokenResponse, CwTokenResul
 /// instantiation. Osmosis does require instantiation, but this can simply be
 /// handled in the top contract.rs where we know that the VaultToken is an
 /// OsmosisDenom.
-pub trait VaultToken: Mint + Burn + Token + Display + AssertReceived {}
+pub trait VaultToken: Instantiate + Mint + Burn + Token + Display + AssertReceived {}
 
 /// We currently only implement VaultToken for OsmosisDenom and Cw4626, because
 /// we use AssertReceived which cannot be implemented for CW20 in a clean way
