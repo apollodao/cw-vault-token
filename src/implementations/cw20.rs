@@ -207,6 +207,7 @@ impl Burn for Cw20 {
         _deps: DepsMut,
         _env: &Env,
         _info: &MessageInfo,
+        _owner: &Addr,
         amount: Uint128,
     ) -> CwTokenResponse {
         Ok(

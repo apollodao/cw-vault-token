@@ -143,6 +143,7 @@ impl Burn for OsmosisDenom {
         _deps: DepsMut,
         env: &Env,
         _info: &MessageInfo,
+        _owner: &Addr,
         amount: Uint128,
     ) -> CwTokenResponse {
         Ok(Response::new().add_message(MsgBurn {

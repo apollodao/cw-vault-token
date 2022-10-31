@@ -78,6 +78,7 @@ pub trait Burn {
         deps: DepsMut,
         env: &Env,
         info: &MessageInfo,
+        owner: &Addr,
         amount: Uint128,
     ) -> CwTokenResponse;
 }

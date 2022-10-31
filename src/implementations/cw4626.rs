@@ -7,7 +7,8 @@ use cosmwasm_std::{
     Uint128,
 };
 use cw20_base::{
-    contract::{execute_burn, execute_transfer, query_balance},
+    allowances::execute_burn_from,
+    contract::{execute_transfer, query_balance},
     msg::InstantiateMsg,
     state::{TokenInfo, BALANCES, MARKETING_INFO, TOKEN_INFO},
     ContractError,
@@ -123,9 +124,16 @@ impl Burn for Cw4626 {
         deps: DepsMut,
         env: &Env,
         info: &MessageInfo,
+        owner: &Addr,
         amount: Uint128,
     ) -> CwTokenResponse {
-        Ok(execute_burn(deps, env.clone(), info.clone(), amount)?)
+        Ok(execute_burn_from(
+            deps,
+            env.clone(),
+            info.clone(),
+            owner.to_string(),
+            amount,
+        )?)
     }
 }
 
