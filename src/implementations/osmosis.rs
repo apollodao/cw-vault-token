@@ -1,16 +1,17 @@
 use crate::token::{Burn, Instantiate, Mint};
 use crate::{AssertReceived, CwTokenResponse, CwTokenResult, Token};
+use cosmwasm_schema::cw_serde;
 use apollo_proto_rust::cosmos::bank::v1beta1::{QuerySupplyOfRequest, QuerySupplyOfResponse};
-use apollo_proto_rust::cosmos::base::v1beta1::Coin as CoinMsg;
-use apollo_proto_rust::osmosis::tokenfactory::v1beta1::{MsgBurn, MsgCreateDenom, MsgMint};
 use apollo_proto_rust::utils::encode;
 use apollo_proto_rust::OsmosisTypeURLs;
-use cosmwasm_schema::cw_serde;
+
 use cosmwasm_std::{
     Addr, BankMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, Event, MessageInfo, QueryRequest,
     Response, StdError, StdResult, Uint128,
 };
 use cw_asset::AssetInfo;
+use osmosis_std::types::cosmos::base::v1beta1::Coin as CoinMsg;
+use osmosis_std::types::osmosis::tokenfactory::v1beta1::{MsgBurn, MsgCreateDenom, MsgMint};
 
 use std::convert::TryFrom;
 use std::fmt::Display;
@@ -130,17 +131,16 @@ impl Mint for OsmosisDenom {
         recipient: &Addr,
         amount: Uint128,
     ) -> CwTokenResponse {
+        let mint_msg : CosmosMsg = MsgMint {
+            amount: Some(CoinMsg {
+                denom: self.to_string(),
+                amount: amount.to_string(),
+            }),
+            sender: env.contract.address.to_string(),
+        }.into();
+
         Ok(Response::new().add_messages(vec![
-            CosmosMsg::Stargate {
-                type_url: OsmosisTypeURLs::Mint.to_string(),
-                value: encode(MsgMint {
-                    amount: Some(CoinMsg {
-                        denom: self.to_string(),
-                        amount: amount.to_string(),
-                    }),
-                    sender: env.contract.address.to_string(),
-                }),
-            },
+            mint_msg,
             CosmosMsg::Bank(BankMsg::Send {
                 to_address: recipient.to_string(),
                 amount: vec![Coin {
@@ -160,28 +160,22 @@ impl Burn for OsmosisDenom {
         _info: &MessageInfo,
         amount: Uint128,
     ) -> CwTokenResponse {
-        Ok(Response::new().add_message(CosmosMsg::Stargate {
-            type_url: OsmosisTypeURLs::Burn.to_string(),
-            value: encode(MsgBurn {
-                amount: Some(CoinMsg {
-                    denom: self.to_string(),
-                    amount: amount.to_string(),
-                }),
-                sender: env.contract.address.to_string(),
+        Ok(Response::new().add_message(MsgBurn {
+            amount: Some(CoinMsg {
+                denom: self.to_string(),
+                amount: amount.to_string(),
             }),
+            sender: env.contract.address.to_string(),
         }))
     }
 }
 
 impl Instantiate for OsmosisDenom {
     fn instantiate(&self, _deps: DepsMut, _init_info: Option<Binary>) -> CwTokenResponse {
-        let init_msg = CosmosMsg::Stargate {
-            type_url: OsmosisTypeURLs::CreateDenom.to_string(),
-            value: encode(MsgCreateDenom {
-                sender: self.owner.clone(),
-                subdenom: self.subdenom.clone(),
-            }),
-        };
+        let init_msg: CosmosMsg = MsgCreateDenom {
+            sender: self.owner.clone(),
+            subdenom: self.subdenom.clone(),
+        }.into();
 
         let init_event =
             Event::new("apollo/cw-token/instantiate").add_attribute("denom", self.to_string());
