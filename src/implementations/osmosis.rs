@@ -1,12 +1,8 @@
 use crate::token::{Burn, Instantiate, Mint};
 use crate::{AssertReceived, CwTokenResponse, CwTokenResult, Token};
 use cosmwasm_schema::cw_serde;
-use apollo_proto_rust::cosmos::bank::v1beta1::{QuerySupplyOfRequest, QuerySupplyOfResponse};
-use apollo_proto_rust::utils::encode;
-use apollo_proto_rust::OsmosisTypeURLs;
-
 use cosmwasm_std::{
-    Addr, BankMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, Event, MessageInfo, QueryRequest,
+    Addr, BankMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, Event, MessageInfo,
     Response, StdError, StdResult, Uint128,
 };
 use cw_asset::AssetInfo;
@@ -15,7 +11,6 @@ use osmosis_std::types::osmosis::tokenfactory::v1beta1::{MsgBurn, MsgCreateDenom
 
 use std::convert::TryFrom;
 use std::fmt::Display;
-use std::str::FromStr;
 
 #[cw_serde]
 pub struct OsmosisDenom {
@@ -103,19 +98,9 @@ impl Token for OsmosisDenom {
     }
 
     fn query_total_supply(&self, deps: Deps) -> CwTokenResult<Uint128> {
-        let amount_str = deps
-            .querier
-            .query::<QuerySupplyOfResponse>(&QueryRequest::Stargate {
-                path: OsmosisTypeURLs::QuerySupplyOf.to_string(),
-                data: encode(QuerySupplyOfRequest {
-                    denom: self.to_string(),
-                }),
-            })?
-            .amount
-            .map(|c| c.amount)
-            .ok_or(StdError::generic_err("No amount in supply response."))?;
+        let supply = deps.querier.query_supply(self.to_string())?;
 
-        Ok(Uint128::from_str(&amount_str)?)
+        Ok(supply.amount)
     }
 
     fn is_native() -> bool {

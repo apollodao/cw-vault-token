@@ -20,18 +20,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "216261ddc8289130e551ddcd5ce8a064710c0d064a4d2895c67151c92b5443f6"
 
 [[package]]
-name = "apollo-proto-rust"
-version = "0.2.0"
-source = "git+https://github.com/apollodao/apollo-proto-rust?tag=v0.3.1#9bccd5adb064e9022d55225a45ba4f0842da4933"
-dependencies = [
- "cosmwasm-std",
- "prost",
- "prost-types",
- "schemars",
- "serde",
-]
-
-[[package]]
 name = "autocfg"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -262,7 +250,6 @@ dependencies = [
 name = "cw-token"
 version = "0.1.0"
 dependencies = [
- "apollo-proto-rust",
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-asset",
