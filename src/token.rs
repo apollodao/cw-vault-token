@@ -5,12 +5,7 @@ use std::fmt::Display;
 use crate::{cw4626::Cw4626, osmosis::OsmosisDenom, CwTokenResponse, CwTokenResult};
 
 /// Combined trait for implementations that can be used as a vault token.
-///
-/// Instantiate is not required here since Cw4626 does not require any specific
-/// instantiation. Osmosis does require instantiation, but this can simply be
-/// handled in the top contract.rs where we know that the VaultToken is an
-/// OsmosisDenom.
-pub trait VaultToken: Instantiate + Mint + Burn + Token + Display + AssertReceived {}
+pub trait VaultToken: Instantiate + Token + Mint + Burn + Receive + Display {}
 
 /// We currently only implement VaultToken for OsmosisDenom and Cw4626, because
 /// we use AssertReceived which cannot be implemented for CW20 in a clean way
@@ -69,24 +64,31 @@ pub trait Token {
 }
 
 pub trait Mint {
+    /// Mints `amount` new vault tokens to the `recipient` address.
+    /// The contract should validate that the recipient is allowed to do this before
+    /// calling the function, i.e. make sure that the recipient has sent sufficient
+    /// assets to the vault, or perform a transfer_from, or similar.
     fn mint(&self, deps: DepsMut, env: &Env, recipient: &Addr, amount: Uint128) -> CwTokenResponse;
 }
 
 pub trait Burn {
-    fn burn(
+    /// Burns vault tokens from the contract's balance.
+    fn burn(&self, deps: DepsMut, env: &Env, amount: Uint128) -> CwTokenResponse;
+}
+
+pub trait Receive {
+    /// Receive the vault token into the contracts balance, or validate that they
+    /// have already been received.
+    /// E.g. if it is a native token, assert that this amount exists in info.funds,
+    /// and if it is a CW4626, transfer from the caller's balance into the contract's.
+    /// We do this so that we can call this at the beginning of a contract ExecuteMsg
+    /// handler, and then know that after this the behavior is the same for both for
+    /// both implementations.
+    fn receive_vault_token(
         &self,
         deps: DepsMut,
         env: &Env,
         info: &MessageInfo,
-        owner: &Addr,
         amount: Uint128,
-    ) -> CwTokenResponse;
-}
-
-// Validates that the `amount` amount of tokens were received by the contract.
-// E.g. if it is a native token, assert that this amount exists in info.funds,
-// and that if it is a Cw4626 that the user has this amount of tokens in their
-// balance.
-pub trait AssertReceived {
-    fn assert_received(&self, deps: Deps, info: &MessageInfo, amount: Uint128) -> StdResult<()>;
+    ) -> StdResult<()>;
 }
