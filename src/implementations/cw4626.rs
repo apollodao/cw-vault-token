@@ -7,16 +7,14 @@ use cosmwasm_std::{
     StdResult, Uint128,
 };
 use cw20_base::{
-    contract::{execute_transfer, query_balance},
+    contract::query_balance,
     msg::InstantiateMsg,
     state::{TokenInfo, BALANCES, MARKETING_INFO, TOKEN_INFO},
     ContractError,
 };
 use cw_asset::AssetInfo;
 
-use crate::{
-    Burn, CwTokenError, CwTokenResponse, CwTokenResult, Instantiate, Mint, Receive, Token,
-};
+use crate::{Burn, CwTokenResponse, CwTokenResult, Instantiate, Mint, Receive, Token};
 
 #[cw_serde]
 pub struct Cw4626(pub Addr);
@@ -47,17 +45,6 @@ impl TryFrom<AssetInfo> for Cw4626 {
 }
 
 impl Token for Cw4626 {
-    fn transfer<A: Into<String>>(
-        &self,
-        deps: DepsMut,
-        env: Env,
-        info: MessageInfo,
-        recipient: A,
-        amount: Uint128,
-    ) -> Result<Response, CwTokenError> {
-        Ok(execute_transfer(deps, env, info, recipient.into(), amount)?)
-    }
-
     fn query_balance<A: Into<String>>(&self, deps: Deps, address: A) -> CwTokenResult<Uint128> {
         Ok(query_balance(deps, address.into())?.balance)
     }

@@ -73,23 +73,6 @@ impl TryFrom<&AssetInfo> for OsmosisDenom {
 }
 
 impl Token for OsmosisDenom {
-    fn transfer<A: Into<String>>(
-        &self,
-        _deps: DepsMut,
-        _env: Env,
-        _info: MessageInfo,
-        to: A,
-        amount: Uint128,
-    ) -> CwTokenResponse {
-        Ok(Response::new().add_message(CosmosMsg::Bank(BankMsg::Send {
-            to_address: to.into(),
-            amount: vec![Coin {
-                denom: self.to_string(),
-                amount,
-            }],
-        })))
-    }
-
     fn query_balance<A: Into<String>>(&self, deps: Deps, address: A) -> CwTokenResult<Uint128> {
         Ok(deps
             .querier

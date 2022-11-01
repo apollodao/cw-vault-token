@@ -47,15 +47,6 @@ pub trait Instantiate {
 }
 
 pub trait Token {
-    fn transfer<A: Into<String>>(
-        &self,
-        deps: DepsMut,
-        env: Env,
-        info: MessageInfo,
-        recipient: A,
-        amount: Uint128,
-    ) -> CwTokenResponse;
-
     fn query_balance<A: Into<String>>(&self, deps: Deps, address: A) -> CwTokenResult<Uint128>;
 
     fn query_total_supply(&self, deps: Deps) -> CwTokenResult<Uint128>;
