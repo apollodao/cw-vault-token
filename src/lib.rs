@@ -1,7 +1,7 @@
 mod error;
 mod implementations;
-mod token;
+mod traits;
 
 pub use error::*;
 pub use implementations::*;
-pub use token::*;
+pub use traits::*;

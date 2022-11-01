@@ -1,5 +1,4 @@
-use crate::token::{Burn, Instantiate, Mint};
-use crate::{CwTokenResponse, CwTokenResult, Receive, VaultToken};
+use crate::{Burn, CwTokenResponse, CwTokenResult, Instantiate, Mint, Receive, VaultToken};
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
     Addr, BankMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, Event, MessageInfo, Response,
