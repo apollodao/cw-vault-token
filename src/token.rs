@@ -2,13 +2,16 @@ use cosmwasm_std::{Addr, Binary, Deps, DepsMut, Env, MessageInfo, StdResult, Uin
 
 use std::fmt::Display;
 
-use crate::{cw4626::Cw4626, osmosis::OsmosisDenom, CwTokenResponse, CwTokenResult};
+use crate::{CwTokenResponse, CwTokenResult};
 
 /// Combined trait for implementations that can be used as a vault token.
-pub trait VaultToken: Instantiate + Token + Mint + Burn + Receive + Display {}
+pub trait VaultToken: Instantiate + Mint + Burn + Receive + Display {
+    /// Query the balance of the vault token for `address`.
+    fn query_balance<A: Into<String>>(&self, deps: Deps, address: A) -> CwTokenResult<Uint128>;
 
-impl VaultToken for OsmosisDenom {}
-impl VaultToken for Cw4626 {}
+    /// Query the total supply of the vault token.
+    fn query_total_supply(&self, deps: Deps) -> CwTokenResult<Uint128>;
+}
 
 /// A trait encapsulating the behavior necessary for instantiation of a token.
 pub trait Instantiate {
@@ -40,14 +43,6 @@ pub trait Instantiate {
     /// }
     /// ```
     fn instantiate(&self, deps: DepsMut, init_info: Option<Binary>) -> CwTokenResponse;
-}
-
-pub trait Token {
-    /// Query the balance of the vault token for `address`.
-    fn query_balance<A: Into<String>>(&self, deps: Deps, address: A) -> CwTokenResult<Uint128>;
-
-    /// Query the total supply of the vault token.
-    fn query_total_supply(&self, deps: Deps) -> CwTokenResult<Uint128>;
 }
 
 pub trait Mint {

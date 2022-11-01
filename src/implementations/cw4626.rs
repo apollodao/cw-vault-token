@@ -14,7 +14,7 @@ use cw20_base::{
 };
 use cw_asset::AssetInfo;
 
-use crate::{Burn, CwTokenResponse, CwTokenResult, Instantiate, Mint, Receive, Token};
+use crate::{Burn, CwTokenResponse, CwTokenResult, Instantiate, Mint, Receive, VaultToken};
 
 #[cw_serde]
 pub struct Cw4626(pub Addr);
@@ -44,7 +44,7 @@ impl TryFrom<AssetInfo> for Cw4626 {
     }
 }
 
-impl Token for Cw4626 {
+impl VaultToken for Cw4626 {
     fn query_balance<A: Into<String>>(&self, deps: Deps, address: A) -> CwTokenResult<Uint128> {
         Ok(query_balance(deps, address.into())?.balance)
     }

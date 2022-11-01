@@ -1,5 +1,5 @@
 use crate::token::{Burn, Instantiate, Mint};
-use crate::{CwTokenResponse, CwTokenResult, Receive, Token};
+use crate::{CwTokenResponse, CwTokenResult, Receive, VaultToken};
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
     Addr, BankMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, Event, MessageInfo, Response,
@@ -72,7 +72,7 @@ impl TryFrom<&AssetInfo> for OsmosisDenom {
     }
 }
 
-impl Token for OsmosisDenom {
+impl VaultToken for OsmosisDenom {
     fn query_balance<A: Into<String>>(&self, deps: Deps, address: A) -> CwTokenResult<Uint128> {
         Ok(deps
             .querier
