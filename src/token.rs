@@ -7,10 +7,6 @@ use crate::{cw4626::Cw4626, osmosis::OsmosisDenom, CwTokenResponse, CwTokenResul
 /// Combined trait for implementations that can be used as a vault token.
 pub trait VaultToken: Instantiate + Token + Mint + Burn + Receive + Display {}
 
-/// We currently only implement VaultToken for OsmosisDenom and Cw4626, because
-/// we use AssertReceived which cannot be implemented for CW20 in a clean way
-/// since there we need to do TransferFrom to transfer the CW20 tokens to the
-/// vault contract.
 impl VaultToken for OsmosisDenom {}
 impl VaultToken for Cw4626 {}
 
@@ -47,11 +43,11 @@ pub trait Instantiate {
 }
 
 pub trait Token {
+    /// Query the balance of the vault token for `address`.
     fn query_balance<A: Into<String>>(&self, deps: Deps, address: A) -> CwTokenResult<Uint128>;
 
+    /// Query the total supply of the vault token.
     fn query_total_supply(&self, deps: Deps) -> CwTokenResult<Uint128>;
-
-    fn is_native() -> bool;
 }
 
 pub trait Mint {

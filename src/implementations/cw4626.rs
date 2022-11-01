@@ -52,10 +52,6 @@ impl Token for Cw4626 {
     fn query_total_supply(&self, deps: Deps) -> CwTokenResult<Uint128> {
         Ok(TOKEN_INFO.load(deps.storage)?.total_supply)
     }
-
-    fn is_native() -> bool {
-        false
-    }
 }
 
 impl Mint for Cw4626 {

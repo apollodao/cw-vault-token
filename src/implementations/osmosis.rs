@@ -85,10 +85,6 @@ impl Token for OsmosisDenom {
 
         Ok(supply.amount)
     }
-
-    fn is_native() -> bool {
-        true
-    }
 }
 
 impl Mint for OsmosisDenom {
