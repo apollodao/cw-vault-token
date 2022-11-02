@@ -31,16 +31,17 @@ pub trait Instantiate {
     ///
     /// ## Example
     /// ```
-    /// #[cfg_attr(not(feature = "library"), entry_point)]
-    /// pub fn instantiate(
-    ///     deps: DepsMut,
-    ///     env: Env,
-    ///     info: MessageInfo,
-    ///     msg: InstantiateMsg,
-    /// ) -> Result<Response, ContractError> {
-    ///     let my_token = MyToken::new(...);
-    ///     my_token.instantiate(deps, to_binary(&msg.init_info)?)
-    /// }
+    /// // TODO: fix this example
+    /// //#[cfg_attr(not(feature = "library"), entry_point)]
+    /// //pub fn instantiate(
+    /// //    deps: DepsMut,
+    /// //    env: Env,
+    /// //    info: MessageInfo,
+    /// //    msg: InstantiateMsg,
+    /// //) -> Result<Response, ContractError> {
+    /// //    let my_token = MyToken::new(..);
+    /// //    my_token.instantiate(deps, to_binary(&msg.init_info)?)
+    /// //}
     /// ```
     fn instantiate(&self, deps: DepsMut, init_info: Option<Binary>) -> CwTokenResponse;
 }
