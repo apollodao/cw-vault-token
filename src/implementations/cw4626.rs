@@ -3,20 +3,18 @@ use std::fmt::Display;
 use ::cw20::MarketingInfoResponse;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
-    from_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
-    Uint128,
+    attr, from_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError,
+    StdResult, Uint128,
 };
 use cw20_base::{
-    contract::{execute_burn, execute_transfer, query_balance},
+    contract::query_balance,
     msg::InstantiateMsg,
     state::{TokenInfo, BALANCES, MARKETING_INFO, TOKEN_INFO},
     ContractError,
 };
 use cw_asset::AssetInfo;
 
-use crate::{
-    AssertReceived, Burn, CwTokenError, CwTokenResponse, CwTokenResult, Instantiate, Mint, Token,
-};
+use crate::{Burn, CwTokenResponse, CwTokenResult, Instantiate, Mint, Receive, VaultToken};
 
 #[cw_serde]
 pub struct Cw4626(pub Addr);
@@ -46,18 +44,7 @@ impl TryFrom<AssetInfo> for Cw4626 {
     }
 }
 
-impl Token for Cw4626 {
-    fn transfer<A: Into<String>>(
-        &self,
-        deps: DepsMut,
-        env: Env,
-        info: MessageInfo,
-        recipient: A,
-        amount: Uint128,
-    ) -> Result<Response, CwTokenError> {
-        Ok(execute_transfer(deps, env, info, recipient.into(), amount)?)
-    }
-
+impl VaultToken for Cw4626 {
     fn query_balance<A: Into<String>>(&self, deps: Deps, address: A) -> CwTokenResult<Uint128> {
         Ok(query_balance(deps, address.into())?.balance)
     }
@@ -65,16 +52,8 @@ impl Token for Cw4626 {
     fn query_total_supply(&self, deps: Deps) -> CwTokenResult<Uint128> {
         Ok(TOKEN_INFO.load(deps.storage)?.total_supply)
     }
-
-    fn is_native() -> bool {
-        false
-    }
 }
 
-/// Mints the specified amount of tokens for the recipient.
-/// The contract should validate that the recipient is allowed to do this before
-/// calling the function, i.e. make sure that the recipient has sent sufficient
-/// assets to the vault, or perform a transfer_from, or similar.
 impl Mint for Cw4626 {
     fn mint(
         &self,
@@ -118,14 +97,24 @@ impl Mint for Cw4626 {
 }
 
 impl Burn for Cw4626 {
-    fn burn(
-        &self,
-        deps: DepsMut,
-        env: &Env,
-        info: &MessageInfo,
-        amount: Uint128,
-    ) -> CwTokenResponse {
-        Ok(execute_burn(deps, env.clone(), info.clone(), amount)?)
+    fn burn(&self, deps: DepsMut, env: &Env, amount: Uint128) -> CwTokenResponse {
+        // lower balance
+        BALANCES.update(
+            deps.storage,
+            &env.contract.address,
+            |balance: Option<Uint128>| -> StdResult<_> {
+                Ok(balance.unwrap_or_default().checked_sub(amount)?)
+            },
+        )?;
+        // reduce total_supply
+        TOKEN_INFO.update(deps.storage, |mut meta| -> StdResult<_> {
+            meta.total_supply = meta.total_supply.checked_sub(amount)?;
+            Ok(meta)
+        })?;
+
+        let res =
+            Response::new().add_attributes(vec![attr("action", "burn"), attr("amount", amount)]);
+        Ok(res)
     }
 }
 
@@ -164,18 +153,29 @@ impl Instantiate for Cw4626 {
     }
 }
 
-impl AssertReceived for Cw4626 {
-    fn assert_received(&self, deps: Deps, info: &MessageInfo, amount: Uint128) -> StdResult<()> {
-        let balance = BALANCES
-            .may_load(deps.storage, &info.sender)?
-            .unwrap_or_default();
+impl Receive for Cw4626 {
+    fn receive_vault_token(
+        &self,
+        deps: DepsMut,
+        env: &Env,
+        info: &MessageInfo,
+        amount: Uint128,
+    ) -> StdResult<()> {
+        let rcpt_addr = &env.contract.address;
+        let owner_addr = &info.sender;
 
-        if balance != amount {
-            return Err(StdError::generic_err(format!(
-                "Tried to use {} tokens, but only {} tokens are available",
-                amount, balance
-            )));
-        }
+        BALANCES.update(
+            deps.storage,
+            owner_addr,
+            |balance: Option<Uint128>| -> StdResult<_> {
+                Ok(balance.unwrap_or_default().checked_sub(amount)?)
+            },
+        )?;
+        BALANCES.update(
+            deps.storage,
+            rcpt_addr,
+            |balance: Option<Uint128>| -> StdResult<_> { Ok(balance.unwrap_or_default() + amount) },
+        )?;
         Ok(())
     }
 }

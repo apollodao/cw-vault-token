@@ -1,9 +1,8 @@
-use crate::token::{Burn, Instantiate, Mint};
-use crate::{AssertReceived, CwTokenResponse, CwTokenResult, Token};
+use crate::{Burn, CwTokenResponse, CwTokenResult, Instantiate, Mint, Receive, VaultToken};
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
-    Addr, BankMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, Event, MessageInfo,
-    Response, StdError, StdResult, Uint128,
+    Addr, BankMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, Event, MessageInfo, Response,
+    StdError, StdResult, Uint128,
 };
 use cw_asset::AssetInfo;
 use osmosis_std::types::cosmos::base::v1beta1::Coin as CoinMsg;
@@ -72,24 +71,7 @@ impl TryFrom<&AssetInfo> for OsmosisDenom {
     }
 }
 
-impl Token for OsmosisDenom {
-    fn transfer<A: Into<String>>(
-        &self,
-        _deps: DepsMut,
-        _env: Env,
-        _info: MessageInfo,
-        to: A,
-        amount: Uint128,
-    ) -> CwTokenResponse {
-        Ok(Response::new().add_message(CosmosMsg::Bank(BankMsg::Send {
-            to_address: to.into(),
-            amount: vec![Coin {
-                denom: self.to_string(),
-                amount,
-            }],
-        })))
-    }
-
+impl VaultToken for OsmosisDenom {
     fn query_balance<A: Into<String>>(&self, deps: Deps, address: A) -> CwTokenResult<Uint128> {
         Ok(deps
             .querier
@@ -102,10 +84,6 @@ impl Token for OsmosisDenom {
 
         Ok(supply.amount)
     }
-
-    fn is_native() -> bool {
-        true
-    }
 }
 
 impl Mint for OsmosisDenom {
@@ -116,13 +94,14 @@ impl Mint for OsmosisDenom {
         recipient: &Addr,
         amount: Uint128,
     ) -> CwTokenResponse {
-        let mint_msg : CosmosMsg = MsgMint {
+        let mint_msg: CosmosMsg = MsgMint {
             amount: Some(CoinMsg {
                 denom: self.to_string(),
                 amount: amount.to_string(),
             }),
             sender: env.contract.address.to_string(),
-        }.into();
+        }
+        .into();
 
         Ok(Response::new().add_messages(vec![
             mint_msg,
@@ -138,13 +117,7 @@ impl Mint for OsmosisDenom {
 }
 
 impl Burn for OsmosisDenom {
-    fn burn(
-        &self,
-        _deps: DepsMut,
-        env: &Env,
-        _info: &MessageInfo,
-        amount: Uint128,
-    ) -> CwTokenResponse {
+    fn burn(&self, _deps: DepsMut, env: &Env, amount: Uint128) -> CwTokenResponse {
         Ok(Response::new().add_message(MsgBurn {
             amount: Some(CoinMsg {
                 denom: self.to_string(),
@@ -160,7 +133,8 @@ impl Instantiate for OsmosisDenom {
         let init_msg: CosmosMsg = MsgCreateDenom {
             sender: self.owner.clone(),
             subdenom: self.subdenom.clone(),
-        }.into();
+        }
+        .into();
 
         let init_event =
             Event::new("apollo/cw-token/instantiate").add_attribute("denom", self.to_string());
@@ -168,8 +142,14 @@ impl Instantiate for OsmosisDenom {
     }
 }
 
-impl AssertReceived for OsmosisDenom {
-    fn assert_received(&self, _deps: Deps, info: &MessageInfo, amount: Uint128) -> StdResult<()> {
+impl Receive for OsmosisDenom {
+    fn receive_vault_token(
+        &self,
+        _deps: DepsMut,
+        _env: &Env,
+        info: &MessageInfo,
+        amount: Uint128,
+    ) -> StdResult<()> {
         let required = Coin {
             denom: self.to_string(),
             amount,
