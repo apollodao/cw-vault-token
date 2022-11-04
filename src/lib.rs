@@ -7,7 +7,6 @@
 #![warn(clippy::pedantic)]
 #![warn(clippy::nursery)]
 #![warn(clippy::cargo)]
-
 #![doc(html_logo_url = "../../../.images/logo.jpg")]
 //! # Apollo CW-TOKEN
 //!
