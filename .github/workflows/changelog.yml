@@ -8,10 +8,16 @@ jobs:
     name: Generate changelog
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout sources
         uses: actions/checkout@v2
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
         with:
-          fetch-depth: 0
+          profile: minimal
+          toolchain: 1.59.0
+          target: wasm32-unknown-unknown
+          override: true
 
       - name: Generate a changelog
         uses: orhun/git-cliff-action@v1

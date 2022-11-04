@@ -10,17 +10,25 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Install latest nightly
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
         with:
-            toolchain: nightly
-            override: true
-            components: rustfmt, clippy
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+          profile: minimal
+          toolchain: 1.59.0
+          target: wasm32-unknown-unknown
+          override: true
+
       - name: Install tarpaulin
-        run: cargo install cargo-tarpaulin
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: cargo-tarpaulin --version 0.20.1
+
       - name: Run code coverage check with tarpaulin
-        run: cargo tarpaulin --verbose --all-features --workspace --timeout 120
+        uses: actions-rs/cargo@v1
+        with:
+          command: tarpaulin
+          args: --workspace --timeout 120
