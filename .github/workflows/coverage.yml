@@ -1,0 +1,26 @@
+name: Coverage
+on:
+  pull_request:
+    branches: ["master"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install latest nightly
+        uses: actions-rs/toolchain@v1
+        with:
+            toolchain: nightly
+            override: true
+            components: rustfmt, clippy
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install tarpaulin
+        run: cargo install cargo-tarpaulin
+      - name: Run code coverage check with tarpaulin
+        run: cargo tarpaulin --verbose --all-features --workspace --timeout 120

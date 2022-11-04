@@ -17,6 +17,7 @@ use cw_asset::AssetInfo;
 use crate::{Burn, CwTokenResponse, CwTokenResult, Instantiate, Mint, Receive, VaultToken};
 
 #[cw_serde]
+/// CW4626 Tokenized Vault standard
 pub struct Cw4626(pub Addr);
 
 impl Display for Cw4626 {
@@ -27,7 +28,7 @@ impl Display for Cw4626 {
 
 impl From<Cw4626> for AssetInfo {
     fn from(cw20_asset: Cw4626) -> Self {
-        AssetInfo::Cw20(cw20_asset.0)
+        Self::Cw20(cw20_asset.0)
     }
 }
 
@@ -36,7 +37,7 @@ impl TryFrom<AssetInfo> for Cw4626 {
 
     fn try_from(asset_info: AssetInfo) -> StdResult<Self> {
         match asset_info {
-            AssetInfo::Cw20(address) => Ok(Cw4626(address)),
+            AssetInfo::Cw20(address) => Ok(Self(address)),
             _ => Err(StdError::generic_err(
                 "Cannot convert non-cw20 asset to Cw20.",
             )),
@@ -81,7 +82,7 @@ impl Mint for Cw4626 {
         TOKEN_INFO.save(deps.storage, &config)?;
 
         // add amount to recipient balance
-        let rcpt_addr = deps.api.addr_validate(&recipient.clone())?;
+        let rcpt_addr = deps.api.addr_validate(&recipient)?;
         BALANCES.update(
             deps.storage,
             &rcpt_addr,
@@ -120,8 +121,9 @@ impl Burn for Cw4626 {
 
 impl Instantiate for Cw4626 {
     fn instantiate(&self, deps: DepsMut, init_info: Option<Binary>) -> CwTokenResponse {
-        let msg: InstantiateMsg =
-            from_binary(&init_info.ok_or(StdError::generic_err("init_info requried for Cw4626"))?)?;
+        let msg: InstantiateMsg = from_binary(
+            &init_info.ok_or_else(|| StdError::generic_err("init_info requried for Cw4626"))?,
+        )?;
 
         // check valid token info
         msg.validate()?;
