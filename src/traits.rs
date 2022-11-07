@@ -29,8 +29,8 @@ pub trait Instantiate {
     /// ## Returns
     /// Returns a Response containing the messages to instantiate the token.
     ///
-    /// ## Example
-    /// ```
+    /// ## Example (pseudocode)
+    /// ```ignore
     /// #[cfg_attr(not(feature = "library"), entry_point)]
     /// pub fn instantiate(
     ///     deps: DepsMut,
@@ -38,7 +38,7 @@ pub trait Instantiate {
     ///     info: MessageInfo,
     ///     msg: InstantiateMsg,
     /// ) -> Result<Response, ContractError> {
-    ///     let my_token = MyToken::new(...);
+    ///     let my_token = MyToken::new(..);
     ///     my_token.instantiate(deps, to_binary(&msg.init_info)?)
     /// }
     /// ```
