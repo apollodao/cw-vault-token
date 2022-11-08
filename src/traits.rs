@@ -10,14 +10,14 @@ pub trait VaultToken: Instantiate + Mint + Burn + Receive + Display {
     /// Query the balance of the vault token for `address`.
     /// # Errors
     ///
-    /// Will return `Err` if `address` does not exist on the contract data.
+    /// Will return Generic `Err`
     fn query_balance<A: Into<String>>(&self, deps: Deps, address: A) -> CwTokenResult<Uint128>;
 
     /// ## Description
     /// Query the total supply of the vault token.
     /// # Errors
     ///
-    /// Will return `Err` if broken data.
+    /// Will return Generic `Err`.
     fn query_total_supply(&self, deps: Deps) -> CwTokenResult<Uint128>;
 }
 
@@ -53,7 +53,7 @@ pub trait Instantiate {
     /// ```
     /// # Errors
     ///
-    /// Will return `Err` if `msg.init_info` has incorrect data.
+    /// Will return Generic `Err`.
     fn instantiate(&self, deps: DepsMut, init_info: Option<Binary>) -> CwTokenResponse;
 }
 
@@ -66,7 +66,7 @@ pub trait Mint {
     /// assets to the vault, or perform a `transfer_from`, or similar.
     /// # Errors
     ///
-    /// Will return `Err` if `recipient` does not have priviledges.
+    /// Will return Generic `Err`
     fn mint(&self, deps: DepsMut, env: &Env, recipient: &Addr, amount: Uint128) -> CwTokenResponse;
 }
 
@@ -76,7 +76,7 @@ pub trait Burn {
     /// Burns vault tokens from the contract's balance.
     /// # Errors
     ///
-    /// Will return `Err` if `amount` is greater than contract balance.
+    /// Will return Generic `Err`.
     fn burn(&self, deps: DepsMut, env: &Env, amount: Uint128) -> CwTokenResponse;
 }
 
@@ -92,7 +92,7 @@ pub trait Receive {
     /// both implementations.
     /// # Errors
     ///
-    /// Will return `Err` if `MessageInfo` has worng data.
+    /// Will return Generic `Err`.
     fn receive_vault_token(
         &self,
         deps: DepsMut,
