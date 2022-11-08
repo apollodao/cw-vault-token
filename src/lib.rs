@@ -12,7 +12,7 @@
 //!
 //! ## Description
 //!
-//! The main goal of the **apollo cw-token** is to:
+//! The main goal of the **cw-vault- token** is to:
 //!   - Define cw4626 LP tokenized pools
 //!   - Define for Osmosis denom token
 //!
