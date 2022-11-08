@@ -57,7 +57,7 @@ pub trait Instantiate {
     fn instantiate(&self, deps: DepsMut, init_info: Option<Binary>) -> CwTokenResponse;
 }
 
-/// Defines the Minting rules of a token
+/// A trait encapsulating the behavior necessary for Minting
 pub trait Mint {
     /// ## Description
     /// Mints `amount` new vault tokens to the `recipient` address.
@@ -70,7 +70,7 @@ pub trait Mint {
     fn mint(&self, deps: DepsMut, env: &Env, recipient: &Addr, amount: Uint128) -> CwTokenResponse;
 }
 
-/// Defines the Burning rules of a token
+/// A trait encapsulating the behavior necessary for Burning
 pub trait Burn {
     /// ## Description
     /// Burns vault tokens from the contract's balance.
@@ -80,7 +80,7 @@ pub trait Burn {
     fn burn(&self, deps: DepsMut, env: &Env, amount: Uint128) -> CwTokenResponse;
 }
 
-/// Defines the Receive behaviour of a token
+/// A trait encapsulating the behavior necessary for Receive
 pub trait Receive {
     /// ## Description
     /// Receive the vault token into the contracts balance, or validate that they
