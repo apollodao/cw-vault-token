@@ -17,7 +17,6 @@ use std::fmt::Display;
 use std::str::FromStr;
 
 #[cw_serde]
-#[allow(clippy::module_name_repetitions)]
 /// Handle Osmosis Denom path for factory on cw-token
 pub struct OsmosisDenom {
     /// grouping name
