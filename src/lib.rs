@@ -8,23 +8,13 @@
 #![warn(clippy::nursery)]
 #![warn(clippy::cargo)]
 #![doc(html_logo_url = "../../../.images/logo.jpg")]
-//! # Apollo CW-TOKEN
+//! # CW-VAULT-TOKEN
 //!
 //! ## Description
-//!
-//! Apollo DAO offers various strategies to maximize yield across farming products.
-//!
-//! We need a project that defines tokens struct IBC compatible that the platform will work with.
-//!
-//! ## Objectives
 //!
 //! The main goal of the **apollo cw-token** is to:
 //!   - Define cw4626 LP tokenized pools
 //!   - Define for Osmosis denom token
-//!
-//! ## Use Cases
-//!
-//! ## Scenarios
 //!
 
 /// Error Handling
