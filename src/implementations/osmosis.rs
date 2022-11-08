@@ -26,7 +26,6 @@ pub struct OsmosisDenom {
     pub subdenom: String,
 }
 
-#[allow(clippy::must_use_candidate)]
 impl OsmosisDenom {
     /// Creates a new [`OsmosisDenom`] obj instance
     pub const fn new(owner: String, subdenom: String) -> Self {
