@@ -5,7 +5,6 @@ use thiserror::Error;
 
 /// Describes router-test contract errors!
 #[derive(Error, Debug, PartialEq)]
-#[allow(clippy::module_name_repetitions)]
 pub enum CwTokenError {
     /// Standard library
     #[error("{0}")]
