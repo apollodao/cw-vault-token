@@ -4,7 +4,6 @@
 #![warn(missing_docs)]
 // Clippy:
 #![warn(clippy::all)]
-#![warn(clippy::pedantic)]
 #![warn(clippy::nursery)]
 #![warn(clippy::cargo)]
 //! # CW-VAULT-TOKEN
