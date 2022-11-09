@@ -1,17 +1,16 @@
 use crate::{Burn, CwTokenResponse, CwTokenResult, Instantiate, Mint, Receive, VaultToken};
-use apollo_proto_rust::cosmos::bank::v1beta1::{QuerySupplyOfRequest, QuerySupplyOfResponse};
-use apollo_proto_rust::utils::encode;
-use apollo_proto_rust::OsmosisTypeURLs;
 use cosmwasm_schema::cw_serde;
 
 use cosmwasm_std::{
-    Addr, BankMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, Event, MessageInfo, QueryRequest,
-    Response, StdError, StdResult, Uint128,
+    to_binary, Addr, BankMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, Event, MessageInfo,
+    QueryRequest, Response, StdError, StdResult, Uint128,
 };
 use cw_asset::AssetInfo;
 use osmosis_std::types::cosmos::base::v1beta1::Coin as CoinMsg;
 use osmosis_std::types::osmosis::tokenfactory::v1beta1::{MsgBurn, MsgCreateDenom, MsgMint};
 
+use osmosis_std::types::cosmos::bank::v1beta1::Supply;
+use osmosis_std::types::cosmos::base::v1beta1::Coin as CoinProto;
 use std::convert::TryFrom;
 use std::fmt::Display;
 use std::str::FromStr;
@@ -92,15 +91,16 @@ impl VaultToken for OsmosisDenom {
     fn query_total_supply(&self, deps: Deps) -> CwTokenResult<Uint128> {
         let amount_str = deps
             .querier
-            .query::<QuerySupplyOfResponse>(&QueryRequest::Stargate {
-                path: OsmosisTypeURLs::QuerySupplyOf.to_string(),
-                data: encode(QuerySupplyOfRequest {
-                    denom: self.to_string(),
-                }),
+            .query::<CoinProto>(&QueryRequest::Stargate {
+                path: "/cosmos.bank.v1beta1.Supply".to_string(),
+                data: to_binary(&Supply {
+                    total: vec![CoinProto {
+                        denom: self.to_string(),
+                        amount: "".to_string(),
+                    }],
+                })?,
             })?
-            .amount
-            .map(|c| c.amount)
-            .ok_or_else(|| StdError::generic_err("No amount in supply response."))?;
+            .amount;
 
         Ok(Uint128::from_str(&amount_str)?)
     }
