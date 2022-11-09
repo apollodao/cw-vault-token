@@ -10,7 +10,6 @@ use osmosis_std::types::cosmos::base::v1beta1::Coin as CoinMsg;
 use osmosis_std::types::osmosis::tokenfactory::v1beta1::{MsgBurn, MsgCreateDenom, MsgMint};
 
 use osmosis_std::types::cosmos::bank::v1beta1::Supply;
-use osmosis_std::types::cosmos::base::v1beta1::Coin as CoinProto;
 use std::convert::TryFrom;
 use std::fmt::Display;
 use std::str::FromStr;
@@ -91,10 +90,10 @@ impl VaultToken for OsmosisDenom {
     fn query_total_supply(&self, deps: Deps) -> CwTokenResult<Uint128> {
         let amount_str = deps
             .querier
-            .query::<CoinProto>(&QueryRequest::Stargate {
+            .query::<CoinMsg>(&QueryRequest::Stargate {
                 path: "/cosmos.bank.v1beta1.Supply".to_string(),
                 data: to_binary(&Supply {
-                    total: vec![CoinProto {
+                    total: vec![CoinMsg {
                         denom: self.to_string(),
                         amount: "".to_string(),
                     }],
