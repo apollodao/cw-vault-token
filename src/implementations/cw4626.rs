@@ -237,8 +237,8 @@ mod test {
 
     fn instantiate_cw4626(cw4626: Cw4626, deps: DepsMut) -> CwTokenResponse {
         let msg = Cw4626InstantiateMsg {
-            name: "Test Token".to_string(),
-            symbol: "TEST".to_string(),
+            name: "Cw4626 tokenized vault".to_string(),
+            symbol: "vaultToken".to_string(),
             decimals: 6,
             mint: None,
             marketing: None,
@@ -272,11 +272,18 @@ mod test {
 
     #[test]
     fn test_instantiate() {
-        // let mut deps = mock_dependencies();
+        let mut deps = mock_dependencies();
+        let cw4626 = Cw4626(Addr::unchecked("cw4626"));
 
-        // let res = instantiate_cw4626(deps);
+        instantiate_cw4626(cw4626, deps.as_mut()).unwrap();
 
-        // assert_eq!(0, res.messages.len());
+        // Assert correct token info
+        let token_info = TOKEN_INFO.load(deps.as_ref().storage).unwrap();
+        assert_eq!(token_info.name, "Cw4626 tokenized vault");
+        assert_eq!(token_info.symbol, "vaultToken");
+        assert_eq!(token_info.decimals, 6);
+        assert_eq!(token_info.total_supply, Uint128::zero());
+        assert_eq!(token_info.mint, None);
     }
 
     #[test]
