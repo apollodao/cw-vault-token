@@ -1,11 +1,11 @@
 use std::fmt::Display;
 
-use ::cw20::MarketingInfoResponse;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
     attr, from_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError,
     StdResult, Uint128,
 };
+use cw20::MarketingInfoResponse;
 use cw20_base::contract::query_balance;
 use cw20_base::msg::InstantiateMsg;
 use cw20_base::state::{TokenInfo, BALANCES, MARKETING_INFO, TOKEN_INFO};
@@ -15,7 +15,10 @@ use cw_asset::AssetInfo;
 use crate::{Burn, CwTokenResponse, CwTokenResult, Instantiate, Mint, Receive, VaultToken};
 
 #[cw_serde]
-/// CW4626 Tokenized Vault standard
+/// Representation of a tokenized vault following the standard defined in
+/// https://github.com/apollodao/cosmwasm-vault-standard#cw4626
+///
+/// This implements the traits Instantiate, Mint, Burn, Receive, and VaultToken
 pub struct Cw4626(pub Addr);
 
 impl Display for Cw4626 {

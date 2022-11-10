@@ -205,20 +205,18 @@ mod test {
     #[test]
     fn test_from_native_denom() {
         // Valid denom
-        let denom = OsmosisDenom::from_native_denom("factory/sender/subdenom".to_string()).unwrap();
+        let denom = OsmosisDenom::from_native_denom("factory/sender/subdenom").unwrap();
         assert_eq!(denom.owner, "sender");
         assert_eq!(denom.subdenom, "subdenom");
 
         // Too few parts
-        assert!(OsmosisDenom::from_native_denom("factory/sender".to_string()).is_err());
+        assert!(OsmosisDenom::from_native_denom("factory/sender").is_err());
 
         // Too many parts
-        assert!(
-            OsmosisDenom::from_native_denom("factory/sender/subdenom/extra".to_string()).is_err()
-        );
+        assert!(OsmosisDenom::from_native_denom("factory/sender/subdenom/extra").is_err());
 
         // Wrong prefix
-        assert!(OsmosisDenom::from_native_denom("wrong/sender/subdenom".to_string()).is_err());
+        assert!(OsmosisDenom::from_native_denom("wrong/sender/subdenom").is_err());
     }
 
     #[test]
