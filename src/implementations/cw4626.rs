@@ -21,6 +21,12 @@ use crate::{Burn, CwTokenResponse, CwTokenResult, Instantiate, Mint, Receive, Va
 /// This implements the traits Instantiate, Mint, Burn, Receive, and VaultToken
 pub struct Cw4626(pub Addr);
 
+impl Cw4626 {
+    pub fn new(addr: Addr) -> Self {
+        Cw4626(addr)
+    }
+}
+
 impl Display for Cw4626 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
