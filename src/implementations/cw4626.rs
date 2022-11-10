@@ -221,3 +221,201 @@ impl Receive for Cw4626 {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod test {
+    use cosmwasm_std::{
+        testing::{mock_dependencies, mock_env, mock_info, MockApi, MockQuerier},
+        to_binary, MemoryStorage, OverflowError, OverflowOperation, OwnedDeps,
+    };
+
+    use crate::CwTokenError;
+
+    use super::*;
+
+    const SENDER: &str = "sender";
+
+    fn instantiate_cw4626(cw4626: Cw4626, deps: DepsMut) -> CwTokenResponse {
+        let msg = Cw4626InstantiateMsg {
+            name: "Test Token".to_string(),
+            symbol: "TEST".to_string(),
+            decimals: 6,
+            mint: None,
+            marketing: None,
+        };
+
+        cw4626.instantiate(deps, Some(to_binary(&msg)?))
+    }
+
+    fn setup_and_mint(
+        mint_amount: Uint128,
+        recipient: Option<&Addr>,
+    ) -> (OwnedDeps<MemoryStorage, MockApi, MockQuerier>, Env, Cw4626) {
+        let mut deps = mock_dependencies();
+        let env = mock_env();
+
+        let cw4626 = Cw4626(Addr::unchecked("cw4626"));
+
+        instantiate_cw4626(cw4626.clone(), deps.as_mut()).unwrap();
+
+        cw4626
+            .mint(
+                deps.as_mut(),
+                &env,
+                recipient.unwrap_or(&env.contract.address),
+                mint_amount,
+            )
+            .unwrap();
+
+        (deps, env, cw4626)
+    }
+
+    #[test]
+    fn test_instantiate() {
+        // let mut deps = mock_dependencies();
+
+        // let res = instantiate_cw4626(deps);
+
+        // assert_eq!(0, res.messages.len());
+    }
+
+    #[test]
+    fn test_mint_and_burn() {
+        // Setup and mint 1000 tokens
+        let mint_amount = Uint128::from(1000u128);
+        let (mut deps, env, cw4626) = setup_and_mint(mint_amount, None);
+
+        // Assert correct balance was minted
+        let balance = BALANCES.load(&deps.storage, &env.contract.address).unwrap();
+        assert_eq!(balance, mint_amount);
+
+        // Assert correct total supply
+        let token_info = TOKEN_INFO.load(&deps.storage).unwrap();
+        assert_eq!(token_info.total_supply, mint_amount);
+
+        // Try burning more than was minted
+        let burn_amount = Uint128::from(5000u128);
+        let res = cw4626.burn(deps.as_mut(), &env, burn_amount).unwrap_err();
+
+        // Assert error message
+        assert_eq!(
+            res,
+            CwTokenError::Std(StdError::Overflow {
+                source: OverflowError {
+                    operation: OverflowOperation::Sub,
+                    operand1: mint_amount.to_string(),
+                    operand2: burn_amount.to_string(),
+                }
+            })
+        );
+
+        // Burn correct amount
+        let burn_amount = Uint128::from(500u128);
+        cw4626.burn(deps.as_mut(), &env, burn_amount).unwrap();
+
+        // Assert correct balance was burned
+        let balance = BALANCES.load(&deps.storage, &env.contract.address).unwrap();
+        assert_eq!(balance, mint_amount - burn_amount);
+
+        // Assert correct total supply
+        let token_info = TOKEN_INFO.load(&deps.storage).unwrap();
+        assert_eq!(token_info.total_supply, mint_amount - burn_amount);
+    }
+
+    #[test]
+    fn test_vault_token_queries() {
+        // Setup and mint 1000 tokens
+        let mint_amount = Uint128::from(1000u128);
+        let (deps, env, cw4626) = setup_and_mint(mint_amount, None);
+
+        // Assert that total supply query is correct
+        let total_supply = cw4626.query_total_supply(deps.as_ref()).unwrap();
+        assert_eq!(total_supply, mint_amount);
+
+        // Assert that balance query is correct
+        let balance = cw4626
+            .query_balance(deps.as_ref(), &env.contract.address)
+            .unwrap();
+        assert_eq!(balance, mint_amount);
+    }
+
+    #[test]
+    fn test_receive() {
+        let sender = Addr::unchecked(SENDER);
+        let info = mock_info(SENDER, &[]);
+
+        // Setup and mint 1000 tokens
+        let mint_amount = Uint128::from(1000u128);
+        let (mut deps, env, cw4626) = setup_and_mint(mint_amount, Some(&sender));
+
+        // Test receiving more than was minted
+        let receive_amount = Uint128::from(5000u128);
+        let res = cw4626
+            .receive_vault_token(deps.as_mut(), &env, &info, receive_amount)
+            .unwrap_err();
+
+        // Assert overflow error message
+        assert_eq!(
+            res,
+            StdError::Overflow {
+                source: OverflowError {
+                    operation: OverflowOperation::Sub,
+                    operand1: mint_amount.to_string(),
+                    operand2: receive_amount.to_string(),
+                }
+            }
+        );
+
+        // Receive 500 tokens
+        let receive_amount = Uint128::from(250u128);
+        cw4626
+            .receive_vault_token(deps.as_mut(), &env, &info, receive_amount)
+            .unwrap();
+
+        // Assert correct balance was received
+        let balance = BALANCES.load(&deps.storage, &env.contract.address).unwrap();
+        assert_eq!(balance, receive_amount);
+
+        // Assert correct balance was deducted from sender
+        let balance = BALANCES.load(&deps.storage, &sender).unwrap();
+        assert_eq!(balance, mint_amount - receive_amount);
+
+        // Assert correct total supply
+        let token_info = TOKEN_INFO.load(&deps.storage).unwrap();
+        assert_eq!(token_info.total_supply, mint_amount);
+    }
+
+    #[test]
+    fn test_into_asset_info() {
+        let cw4626 = Cw4626(Addr::unchecked("cw4626"));
+
+        let asset_info: AssetInfo = cw4626.clone().into();
+
+        assert_eq!(asset_info, AssetInfo::Cw20(cw4626.0));
+    }
+
+    #[test]
+    fn test_try_from_asset_info() {
+        let asset_info = AssetInfo::Cw20(Addr::unchecked("cw4626"));
+
+        let cw4626 = Cw4626::try_from(asset_info).unwrap();
+
+        assert_eq!(cw4626, Cw4626(Addr::unchecked("cw4626")));
+
+        let asset_info = AssetInfo::Native("native".to_string());
+
+        let res = Cw4626::try_from(asset_info).unwrap_err();
+
+        assert_eq!(
+            res,
+            StdError::generic_err("Cannot convert non-cw20 asset to Cw20.",)
+        );
+    }
+
+    #[test]
+    fn test_to_string() {
+        let cw4626 = Cw4626(Addr::unchecked("cw4626"));
+
+        assert_eq!(cw4626.to_string(), "cw4626");
+    }
+}
