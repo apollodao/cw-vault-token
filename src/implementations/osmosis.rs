@@ -2,13 +2,11 @@ use crate::{Burn, CwTokenResponse, CwTokenResult, Instantiate, Mint, Receive, Va
 
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
-    to_binary, Addr, BankMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, Event,
-    MessageInfo, QueryRequest, Response, StdError, StdResult, Uint128,
+    Addr, BankMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, Event, MessageInfo, Response,
+    StdError, StdResult, Uint128,
 };
 use cw_asset::AssetInfo;
-use osmosis_std::types::cosmos::bank::v1beta1::{
-    BankQuerier, QuerySupplyOfRequest, QuerySupplyOfResponse,
-};
+use osmosis_std::types::cosmos::bank::v1beta1::BankQuerier;
 use osmosis_std::types::cosmos::base::v1beta1::Coin as CoinMsg;
 use osmosis_std::types::osmosis::tokenfactory::v1beta1::{MsgBurn, MsgCreateDenom, MsgMint};
 use std::convert::TryFrom;
