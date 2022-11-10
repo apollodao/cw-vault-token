@@ -5,9 +5,9 @@ use cosmwasm_std::{
     attr, from_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError,
     StdResult, Uint128,
 };
-use cw20::MarketingInfoResponse;
+use cw20::{MarketingInfoResponse, MinterResponse};
 use cw20_base::contract::query_balance;
-use cw20_base::msg::InstantiateMsg;
+use cw20_base::msg::{InstantiateMarketingInfo, InstantiateMsg};
 use cw20_base::state::{TokenInfo, BALANCES, MARKETING_INFO, TOKEN_INFO};
 use cw20_base::ContractError;
 use cw_asset::AssetInfo;
@@ -120,11 +120,41 @@ impl Burn for Cw4626 {
     }
 }
 
+#[cw_serde]
+/// Instantiate message for a cw4626 token. Contains the same fields as cw20_base::InstantiateMsg,
+/// except `initial_balances` is not allowed.
+pub struct Cw4626InstantiateMsg {
+    /// Name of the token
+    pub name: String,
+    /// Ticker symbol for the token
+    pub symbol: String,
+    /// Number of decimals
+    pub decimals: u8,
+    /// Optional minter of the token
+    pub mint: Option<MinterResponse>,
+    /// Optional marketing info
+    pub marketing: Option<InstantiateMarketingInfo>,
+}
+
+impl From<Cw4626InstantiateMsg> for InstantiateMsg {
+    fn from(msg: Cw4626InstantiateMsg) -> Self {
+        InstantiateMsg {
+            name: msg.name,
+            symbol: msg.symbol,
+            decimals: msg.decimals,
+            initial_balances: vec![],
+            mint: msg.mint,
+            marketing: msg.marketing,
+        }
+    }
+}
+
 impl Instantiate for Cw4626 {
     fn instantiate(&self, deps: DepsMut, init_info: Option<Binary>) -> CwTokenResponse {
-        let msg: InstantiateMsg = from_binary(
+        let msg: InstantiateMsg = from_binary::<Cw4626InstantiateMsg>(
             &init_info.ok_or_else(|| StdError::generic_err("init_info requried for Cw4626"))?,
-        )?;
+        )?
+        .into();
 
         // check valid token info
         msg.validate()?;
@@ -147,7 +177,7 @@ impl Instantiate for Cw4626 {
                     .marketing
                     .map(|addr| deps.api.addr_validate(&addr))
                     .transpose()?,
-                logo: None, /* For some reason all the logo validation functions are private. We
+                logo: None, /* TODO: For some reason all the logo validation functions are private. We
                              * ignore logo info for now. */
             };
             MARKETING_INFO.save(deps.storage, &data)?;
