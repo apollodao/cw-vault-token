@@ -2,25 +2,4 @@
 newline_style = "Unix"
 hard_tabs = false
 tab_spaces = 4
-# blank_lines_upper_bound = 0
-# blank_lines_lower_bound = 0
-# fn_args_layout = "Vertical"
-# force_multiline_blocks = true
-# imports_layout = "Vertical"
-# imports_granularity = "Item"
-# reorder_impl_items= true
-# reorder_modules = true
-# report_todo= "Always"
-# report_fixme = "Always"
-# spaces_around_ranges = true
-# trailing_comma = "Always"
-
-# unstable... should we require `rustup run nightly cargo fmt` ?
-# or just update the style guide when they are stable?
-#fn_single_line = true
-#format_code_in_doc_comments = true
-#overflow_delimited_expr = true
-#reorder_impl_items = true
-#struct_field_align_threshold = 20
-#struct_lit_single_line = true
-#report_todo = "Always"
+imports_granularity = "Module"
