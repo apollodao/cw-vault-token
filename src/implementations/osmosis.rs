@@ -91,8 +91,8 @@ impl VaultToken for OsmosisDenom {
         let amount_str = bank_querier
             .supply_of(self.to_string())?
             .amount
-            .unwrap()
-            .amount;
+            .map(|c| c.amount)
+            .ok_or(StdError::not_found("amount in supply response"))?;
         Ok(Uint128::from_str(&amount_str)?)
     }
 }
