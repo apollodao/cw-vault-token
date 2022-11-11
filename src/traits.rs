@@ -92,7 +92,7 @@ pub trait Receive {
     /// both implementations.
     /// # Errors
     ///
-    /// Will return Generic `Err`.
+    /// May return `CwTokenError`.
     fn receive_vault_token(
         &self,
         deps: DepsMut,
