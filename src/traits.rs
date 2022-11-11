@@ -90,8 +90,7 @@ pub trait Receive {
     /// info.funds, and if it is a CW4626, transfer from the caller's
     /// balance into the contract's. We do this so that we can call this at
     /// the beginning of a contract `ExecuteMsg` handler, and then know that
-    /// after this the behavior is the same for both for
-    /// both implementations.
+    /// after this the behavior is the same for both for both implementations.
     /// # Errors
     ///
     /// May return `CwTokenError`.

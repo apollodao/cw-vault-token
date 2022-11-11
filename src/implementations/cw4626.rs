@@ -155,6 +155,8 @@ impl Instantiate for Cw4626 {
 }
 
 impl Receive for Cw4626 {
+    /// Recieve the vault token from the caller's (info.sender) balance into the
+    /// contract's balance.
     fn receive_vault_token(
         &self,
         deps: DepsMut,
