@@ -183,3 +183,119 @@ impl Receive for OsmosisDenom {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod test {
+    use cosmwasm_std::testing::{mock_dependencies, mock_env};
+
+    use super::*;
+
+    const SENDER: &str = "sender";
+    const SUBDENOM: &str = "subdenom";
+
+    #[test]
+    fn test_to_string() {
+        let denom = OsmosisDenom::new(SENDER.to_string(), SUBDENOM.to_string());
+        assert_eq!(
+            denom.to_string(),
+            format!("factory/{}/{}", SENDER, SUBDENOM)
+        );
+    }
+
+    #[test]
+    fn test_from_native_denom() {
+        // Valid denom
+        let denom = OsmosisDenom::from_native_denom("factory/sender/subdenom".to_string()).unwrap();
+        assert_eq!(denom.owner, "sender");
+        assert_eq!(denom.subdenom, "subdenom");
+
+        // Too few parts
+        assert!(OsmosisDenom::from_native_denom("factory/sender".to_string()).is_err());
+
+        // Too many parts
+        assert!(
+            OsmosisDenom::from_native_denom("factory/sender/subdenom/extra".to_string()).is_err()
+        );
+
+        // Wrong prefix
+        assert!(OsmosisDenom::from_native_denom("wrong/sender/subdenom".to_string()).is_err());
+    }
+
+    #[test]
+    fn test_into_asset_info() {
+        let denom = OsmosisDenom::new(SENDER.to_string(), SUBDENOM.to_string());
+        let asset_info: AssetInfo = denom.into();
+        assert_eq!(
+            asset_info,
+            AssetInfo::Native(format!("factory/{}/{}", SENDER, SUBDENOM))
+        );
+    }
+
+    #[test]
+    fn test_try_from_asset_info() {
+        // Native asset
+        let asset_info = AssetInfo::Native(format!("factory/{}/{}", SENDER, SUBDENOM));
+        let denom = OsmosisDenom::try_from(asset_info).unwrap();
+        assert_eq!(denom.owner, SENDER);
+        assert_eq!(denom.subdenom, SUBDENOM);
+
+        // Non-native asset
+        let asset_info = AssetInfo::Cw20(Addr::unchecked("addr"));
+        let err = OsmosisDenom::try_from(asset_info).unwrap_err();
+
+        assert_eq!(
+            err,
+            StdError::generic_err("Cannot convert non-native asset to OsmosisDenom.")
+        );
+    }
+
+    #[test]
+    fn test_receive_vault_token() {
+        let mut deps = mock_dependencies();
+        let env = mock_env();
+
+        let denom = OsmosisDenom::new(env.contract.address.to_string(), SUBDENOM.to_string());
+
+        // Set up MessageInfo with funds
+        let sent_coin = Coin {
+            denom: denom.to_string(),
+            amount: Uint128::from(1000u128),
+        };
+        let info = MessageInfo {
+            sender: Addr::unchecked(SENDER),
+            funds: vec![sent_coin.clone()],
+        };
+
+        // Try to receive more than was sent
+        let mut receive_coin = Coin {
+            denom: denom.to_string(),
+            amount: Uint128::from(5000u128),
+        };
+        let err = denom
+            .receive_vault_token(deps.as_mut(), &env, &info, receive_coin.amount)
+            .unwrap_err();
+
+        // Assert error message
+        assert_eq!(
+            err,
+            StdError::generic_err(format!("Expected to receive {}", receive_coin))
+        );
+
+        // Try to receive less than was sent
+        receive_coin.amount = Uint128::from(500u128);
+        let err = denom
+            .receive_vault_token(deps.as_mut(), &env, &info, receive_coin.amount)
+            .unwrap_err();
+
+        // Assert error message
+        assert_eq!(
+            err,
+            StdError::generic_err(format!("Expected to receive {}", receive_coin))
+        );
+
+        // Try to receive exactly what was sent
+        denom
+            .receive_vault_token(deps.as_mut(), &env, &info, sent_coin.amount)
+            .unwrap();
+    }
+}
