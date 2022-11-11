@@ -100,7 +100,7 @@ impl VaultToken for OsmosisDenom {
             })?
             .amount
             .map(|c| c.amount)
-            .ok_or(StdError::generic_err("No amount in supply response."))?;
+            .ok_or_else(|| StdError::generic_err("No amount in supply response."))?;
 
         Ok(Uint128::from_str(&amount_str)?)
     }
