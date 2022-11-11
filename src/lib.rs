@@ -6,14 +6,16 @@
 #![warn(clippy::all)]
 #![warn(clippy::nursery)]
 #![warn(clippy::cargo)]
-//! # CW-VAULT-TOKEN
+//! # Cosmwasm Vault Token
 //!
 //! ## Description
 //!
-//! The main goal of the **cw-vault- token** is to:
-//!   - Define cw4626 LP tokenized pools
-//!   - Define for Osmosis denom token
-//!
+//! An abstraction for different ways of implementing a vault token.
+//! This crate defines a set of traits that define the behavior of a vault
+//! token. Two implementations are provided, one for the an Osmosis native denom
+//! minted through the TokenFactory module and one for Cw4626 tokenized vaults.
+//! See the cosmwasm-vault-standard crate for more information about tokenized
+//! vaults.
 
 /// Error Handling
 mod error;
