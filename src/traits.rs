@@ -10,14 +10,14 @@ pub trait VaultToken: Instantiate + Mint + Burn + Receive + Display {
     /// Query the balance of the vault token for `address`.
     /// # Errors
     ///
-    /// Will return Generic `Err`
+    /// May return `CwTokenError`.
     fn query_balance<A: Into<String>>(&self, deps: Deps, address: A) -> CwTokenResult<Uint128>;
 
     /// ## Description
     /// Query the total supply of the vault token.
     /// # Errors
     ///
-    /// Will return Generic `Err`.
+    /// May return `CwTokenError`.
     fn query_total_supply(&self, deps: Deps) -> CwTokenResult<Uint128>;
 }
 
@@ -53,7 +53,7 @@ pub trait Instantiate {
     /// ```
     /// # Errors
     ///
-    /// Will return Generic `Err`.
+    /// May return `CwTokenError`.
     fn instantiate(&self, deps: DepsMut, init_info: Option<Binary>) -> CwTokenResponse;
 }
 
@@ -66,7 +66,7 @@ pub trait Mint {
     /// assets to the vault, or perform a `transfer_from`, or similar.
     /// # Errors
     ///
-    /// Will return Generic `Err`
+    /// May return `CwTokenError`.
     fn mint(&self, deps: DepsMut, env: &Env, recipient: &Addr, amount: Uint128) -> CwTokenResponse;
 }
 
@@ -76,7 +76,7 @@ pub trait Burn {
     /// Burns vault tokens from the contract's balance.
     /// # Errors
     ///
-    /// Will return Generic `Err`.
+    /// May return `CwTokenError`.
     fn burn(&self, deps: DepsMut, env: &Env, amount: Uint128) -> CwTokenResponse;
 }
 
