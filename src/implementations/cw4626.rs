@@ -22,6 +22,7 @@ use crate::{Burn, CwTokenResponse, CwTokenResult, Instantiate, Mint, Receive, Va
 pub struct Cw4626(pub Addr);
 
 impl Cw4626 {
+    /// Creates a new [`Cw4626`] obj instance
     pub fn new(addr: Addr) -> Self {
         Cw4626(addr)
     }
