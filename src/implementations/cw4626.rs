@@ -5,7 +5,7 @@ use cosmwasm_std::{
     attr, from_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError,
     StdResult, Uint128,
 };
-use cw20::{MarketingInfoResponse, MinterResponse};
+use cw20::MarketingInfoResponse;
 use cw20_base::contract::query_balance;
 use cw20_base::msg::{InstantiateMarketingInfo, InstantiateMsg};
 use cw20_base::state::{TokenInfo, BALANCES, MARKETING_INFO, TOKEN_INFO};
@@ -136,8 +136,6 @@ pub struct Cw4626InstantiateMsg {
     pub symbol: String,
     /// Number of decimals
     pub decimals: u8,
-    /// Optional minter of the token
-    pub mint: Option<MinterResponse>,
     /// Optional marketing info
     pub marketing: Option<InstantiateMarketingInfo>,
 }
@@ -149,7 +147,7 @@ impl From<Cw4626InstantiateMsg> for InstantiateMsg {
             symbol: msg.symbol,
             decimals: msg.decimals,
             initial_balances: vec![],
-            mint: msg.mint,
+            mint: None,
             marketing: msg.marketing,
         }
     }
@@ -240,7 +238,6 @@ mod test {
             name: "Cw4626 tokenized vault".to_string(),
             symbol: "vaultToken".to_string(),
             decimals: 6,
-            mint: None,
             marketing: None,
         };
 
