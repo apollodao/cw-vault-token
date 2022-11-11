@@ -6,12 +6,10 @@ use cosmwasm_std::{
     attr, from_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError,
     StdResult, Uint128,
 };
-use cw20_base::{
-    contract::query_balance,
-    msg::InstantiateMsg,
-    state::{TokenInfo, BALANCES, MARKETING_INFO, TOKEN_INFO},
-    ContractError,
-};
+use cw20_base::contract::query_balance;
+use cw20_base::msg::InstantiateMsg;
+use cw20_base::state::{TokenInfo, BALANCES, MARKETING_INFO, TOKEN_INFO};
+use cw20_base::ContractError;
 use cw_asset::AssetInfo;
 
 use crate::{Burn, CwTokenResponse, CwTokenResult, Instantiate, Mint, Receive, VaultToken};
@@ -121,7 +119,7 @@ impl Burn for Cw4626 {
 
 impl Instantiate for Cw4626 {
     fn instantiate(&self, deps: DepsMut, init_info: Option<Binary>) -> CwTokenResponse {
-        let msg: InstantiateMsg = 
+        let msg: InstantiateMsg =
             from_binary(&init_info.ok_or(StdError::generic_err("init_info requried for Cw4626"))?)?;
 
         // check valid token info
@@ -145,7 +143,8 @@ impl Instantiate for Cw4626 {
                     .marketing
                     .map(|addr| deps.api.addr_validate(&addr))
                     .transpose()?,
-                logo: None, //For some reason all the logo validation functions are private. We ignore logo info for now.
+                logo: None, /* For some reason all the logo validation functions are private. We
+                             * ignore logo info for now. */
             };
             MARKETING_INFO.save(deps.storage, &data)?;
         }
