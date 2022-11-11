@@ -3,15 +3,13 @@ on:
   push:
     branches:
       - master
-  pull_request:
-    branches: ["master"]
 jobs:
   changelog:
     name: Generate changelog
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Generate a changelog
         uses: orhun/git-cliff-action@v1
