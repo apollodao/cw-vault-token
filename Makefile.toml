@@ -1,0 +1,49 @@
+[tasks.deny]
+command = "cargo"
+args = ["deny", "check"]
+
+[tasks.clippy]
+command = "cargo"
+args = ["clippy","--","-D","warnings"]
+
+[tasks.cov]
+command = "cargo"
+args = [
+    "tarpaulin",
+    "--ignore-tests",
+    "-o",
+    "Lcov",
+    "--output-dir",
+    "target/tarpaulin",
+]
+
+[tasks.docs]
+command = "cargo"
+args = [
+    "doc",
+    "--target-dir",
+    "docs",
+    "--color",
+    "never",
+    "--no-deps",
+    "--open",
+    "--workspace",
+    "--exclude",
+    "'cosmwasm*'",
+    "--exclude",
+    "'cw*'",
+    "--release",
+]
+
+# Run automatically on "cargo make". This is the default task. We keep all the
+# default tasks and add our own "custom" task.
+[tasks.dev-test-flow]
+run_task = "custom-default"
+
+# Custom tasks to run on "cargo make"
+[tasks.custom-default]
+dependencies = ["deny", "clippy"]
+
+# Docs and Test coverage are not run by default. Can run all with "cargo make all".
+[tasks.all]
+dependencies = ["dev-test-flow", "custom-default", "cov", "docs"]

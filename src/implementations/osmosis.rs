@@ -1,8 +1,8 @@
 use crate::{Burn, CwTokenResponse, CwTokenResult, Instantiate, Mint, Receive, VaultToken};
-use cosmwasm_schema::cw_serde;
 use apollo_proto_rust::cosmos::bank::v1beta1::{QuerySupplyOfRequest, QuerySupplyOfResponse};
 use apollo_proto_rust::utils::encode;
 use apollo_proto_rust::OsmosisTypeURLs;
+use cosmwasm_schema::cw_serde;
 
 use cosmwasm_std::{
     Addr, BankMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, Event, MessageInfo, QueryRequest,
@@ -17,18 +17,26 @@ use std::fmt::Display;
 use std::str::FromStr;
 
 #[cw_serde]
+/// Handle Osmosis Denom path for factory on cw-token
 pub struct OsmosisDenom {
+    /// grouping name
     pub owner: String,
+    /// sub denom
     pub subdenom: String,
 }
 
 impl OsmosisDenom {
-    pub fn new(owner: String, subdenom: String) -> Self {
-        OsmosisDenom { owner, subdenom }
+    /// Creates a new [`OsmosisDenom`] obj instance
+    pub const fn new(owner: String, subdenom: String) -> Self {
+        Self { owner, subdenom }
     }
 
-    pub fn from_native_denom(denom: String) -> StdResult<Self> {
-        let parts: Vec<_> = denom.split("/").collect();
+    /// Create a Denom using factory owner
+    /// # Errors
+    ///
+    /// Will return `Err` if `denom` is not well formed.
+    pub fn from_native_denom(denom: &str) -> StdResult<Self> {
+        let parts: Vec<_> = denom.split('/').collect();
 
         if parts.len() != 3 || parts[0] != "factory" {
             return Err(StdError::generic_err(
@@ -36,10 +44,7 @@ impl OsmosisDenom {
             ));
         }
 
-        Ok(OsmosisDenom::new(
-            parts[1].to_string(),
-            parts[2].to_string(),
-        ))
+        Ok(Self::new(parts[1].to_string(), parts[2].to_string()))
     }
 }
 
@@ -51,7 +56,7 @@ impl Display for OsmosisDenom {
 
 impl From<OsmosisDenom> for AssetInfo {
     fn from(denom: OsmosisDenom) -> Self {
-        AssetInfo::Native(denom.to_string())
+        Self::Native(denom.to_string())
     }
 }
 
@@ -60,7 +65,7 @@ impl TryFrom<AssetInfo> for OsmosisDenom {
 
     fn try_from(asset_info: AssetInfo) -> StdResult<Self> {
         match asset_info {
-            AssetInfo::Native(denom) => OsmosisDenom::from_native_denom(denom),
+            AssetInfo::Native(denom) => Self::from_native_denom(denom.as_str()),
             _ => Err(StdError::generic_err(
                 "Cannot convert non-native asset to OsmosisDenom.",
             )),
@@ -95,7 +100,7 @@ impl VaultToken for OsmosisDenom {
             })?
             .amount
             .map(|c| c.amount)
-            .ok_or(StdError::generic_err("No amount in supply response."))?;
+            .ok_or_else(|| StdError::generic_err("No amount in supply response."))?;
 
         Ok(Uint128::from_str(&amount_str)?)
     }
@@ -109,13 +114,13 @@ impl Mint for OsmosisDenom {
         recipient: &Addr,
         amount: Uint128,
     ) -> CwTokenResponse {
-        let mint_msg: CosmosMsg = MsgMint {
+        let mint_msg: CosmosMsg = (MsgMint {
             amount: Some(CoinMsg {
                 denom: self.to_string(),
                 amount: amount.to_string(),
             }),
             sender: env.contract.address.to_string(),
-        }
+        })
         .into();
 
         Ok(Response::new().add_messages(vec![
@@ -145,10 +150,10 @@ impl Burn for OsmosisDenom {
 
 impl Instantiate for OsmosisDenom {
     fn instantiate(&self, _deps: DepsMut, _init_info: Option<Binary>) -> CwTokenResponse {
-        let init_msg: CosmosMsg = MsgCreateDenom {
+        let init_msg: CosmosMsg = (MsgCreateDenom {
             sender: self.owner.clone(),
             subdenom: self.subdenom.clone(),
-        }
+        })
         .into();
 
         let init_event =
