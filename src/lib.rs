@@ -2,10 +2,7 @@
 #![forbid(unsafe_code)]
 #![deny(bare_trait_objects, unused_doc_comments, unused_import_braces)]
 #![warn(missing_docs)]
-// Clippy:
-#![warn(clippy::all)]
-#![warn(clippy::nursery)]
-#![warn(clippy::cargo)]
+
 //! # Cosmwasm Vault Token
 //!
 //! ## Description
