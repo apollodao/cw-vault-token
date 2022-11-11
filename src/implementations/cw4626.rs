@@ -195,7 +195,7 @@ impl Instantiate for Cw4626 {
 impl Receive for Cw4626 {
     /// Recieve the vault token from the caller's (info.sender) balance into the
     /// contract's balance.
-    fn receive_vault_token(
+    fn receive(
         &self,
         deps: DepsMut,
         env: &Env,
@@ -356,7 +356,7 @@ mod test {
         // Test receiving more than was minted
         let receive_amount = Uint128::from(5000u128);
         let res = cw4626
-            .receive_vault_token(deps.as_mut(), &env, &info, receive_amount)
+            .receive(deps.as_mut(), &env, &info, receive_amount)
             .unwrap_err();
 
         // Assert overflow error message
@@ -374,7 +374,7 @@ mod test {
         // Receive 500 tokens
         let receive_amount = Uint128::from(250u128);
         cw4626
-            .receive_vault_token(deps.as_mut(), &env, &info, receive_amount)
+            .receive(deps.as_mut(), &env, &info, receive_amount)
             .unwrap();
 
         // Assert correct balance was received

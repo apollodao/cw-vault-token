@@ -163,7 +163,7 @@ impl Instantiate for OsmosisDenom {
 }
 
 impl Receive for OsmosisDenom {
-    fn receive_vault_token(
+    fn receive(
         &self,
         _deps: DepsMut,
         _env: &Env,
@@ -270,7 +270,7 @@ mod test {
             amount: Uint128::from(5000u128),
         };
         let err = denom
-            .receive_vault_token(deps.as_mut(), &env, &info, receive_coin.amount)
+            .receive(deps.as_mut(), &env, &info, receive_coin.amount)
             .unwrap_err();
 
         // Assert error message
@@ -282,7 +282,7 @@ mod test {
         // Try to receive less than was sent
         receive_coin.amount = Uint128::from(500u128);
         let err = denom
-            .receive_vault_token(deps.as_mut(), &env, &info, receive_coin.amount)
+            .receive(deps.as_mut(), &env, &info, receive_coin.amount)
             .unwrap_err();
 
         // Assert error message
@@ -293,7 +293,7 @@ mod test {
 
         // Try to receive exactly what was sent
         denom
-            .receive_vault_token(deps.as_mut(), &env, &info, sent_coin.amount)
+            .receive(deps.as_mut(), &env, &info, sent_coin.amount)
             .unwrap();
     }
 }
