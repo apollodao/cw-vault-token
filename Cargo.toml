@@ -1,6 +1,6 @@
 [package]
-name = "cw-token"
-description = "Trait implementations for abstracting out token handling"
+name = "cw-vault-token"
+description = " An abstraction for different ways of implementing a vault token."
 version = "0.1.0"
 authors = ["Apollo Devs"]
 edition = "2021"
@@ -10,7 +10,6 @@ license = "Apache-2.0"
 homepage = "https://apollo.farm/"
 documentation = ""                                                       # TODO: add api-docs
 keywords = ["blockchain", "cosmos", "library"]
-categories = ["webassembly", "webassembly::blockchain"]
 
 [workspace]
 
