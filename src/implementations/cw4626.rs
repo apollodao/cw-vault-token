@@ -226,10 +226,8 @@ impl Receive for Cw4626 {
 
 #[cfg(test)]
 mod test {
-    use cosmwasm_std::{
-        testing::{mock_dependencies, mock_env, mock_info, MockApi, MockQuerier},
-        to_binary, MemoryStorage, OverflowError, OverflowOperation, OwnedDeps,
-    };
+    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info, MockApi, MockQuerier};
+    use cosmwasm_std::{to_binary, MemoryStorage, OverflowError, OverflowOperation, OwnedDeps};
 
     use crate::CwTokenError;
 
