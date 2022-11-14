@@ -94,7 +94,7 @@ pub trait Receive {
     /// # Errors
     ///
     /// May return `CwTokenError`.
-    fn receive_vault_token(
+    fn receive(
         &self,
         deps: DepsMut,
         env: &Env,
