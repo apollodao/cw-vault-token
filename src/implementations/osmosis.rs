@@ -18,7 +18,7 @@ use std::str::FromStr;
 /// The denom of the token will be `factory/{owner}/{subdenom}`. If this token
 /// has not yet been created, the `instantiate` function must first be called
 /// and its response included in the transaction. If the token has already been
-/// created an [`OsmoisDenom`] object can be created directly
+/// created an [`OsmosisDenom`] object can be created directly
 /// using [`OsmosisDenom::new`] or [`OsmosisDenom::from_native_denom`]. Note
 /// that currently only the creator of the denom can mint or burn it.
 ///

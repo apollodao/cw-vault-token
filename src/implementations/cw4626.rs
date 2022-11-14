@@ -16,7 +16,7 @@ use crate::{Burn, CwTokenResponse, CwTokenResult, Instantiate, Mint, Receive, Va
 
 #[cw_serde]
 /// Representation of a tokenized vault following the standard defined in
-/// https://github.com/apollodao/cosmwasm-vault-standard#cw4626, and any
+/// <https://github.com/apollodao/cosmwasm-vault-standard#cw4626>, and any
 /// contract using this abstraction must implement the messages
 /// defined in the standard. Note that `Cw4626` does not support the Cw20
 /// Minter extension, so only the `cw4626` contract itself can mint tokens.
@@ -32,7 +32,8 @@ pub struct Cw4626 {
 }
 
 impl Cw4626 {
-    /// Creates a new [`Cw4626`] instance from an [`&Env`].
+    /// Creates a new [`Cw4626`] instance from a reference to
+    /// [`cosmwasm_std::Env`].
     ///
     /// ## Example
     /// Create a new [`Cw4626`] instance for the current contract and
@@ -158,7 +159,7 @@ impl Burn for Cw4626 {
 
 #[cw_serde]
 /// Instantiate message for a cw4626 token. Contains the same fields as
-/// [`cw20_base::InstantiateMsg`], omitting `initial_balances` and `minter`.
+/// [`cw20_base::msg::InstantiateMsg`], omitting `initial_balances` and `minter`.
 pub struct Cw4626InstantiateMsg {
     /// Name of the token
     pub name: String,
