@@ -21,7 +21,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --fix -Dwarnings
+          args: --fix -- -Dwarnings
 
       - name: Run cargo fmt
         uses: actions-rs/cargo@v1
