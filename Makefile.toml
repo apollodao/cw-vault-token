@@ -42,8 +42,8 @@ run_task = "custom-default"
 
 # Custom tasks to run on "cargo make"
 [tasks.custom-default]
-dependencies = ["deny", "clippy"]
+dependencies = ["deny", "clippy", "docs"]
 
 # Docs and Test coverage are not run by default. Can run all with "cargo make all".
 [tasks.all]
-dependencies = ["dev-test-flow", "custom-default", "cov", "docs"]
+dependencies = ["dev-test-flow", "custom-default", "cov"]
