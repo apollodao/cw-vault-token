@@ -16,7 +16,15 @@ use crate::{Burn, CwTokenResponse, CwTokenResult, Instantiate, Mint, Receive, Va
 
 #[cw_serde]
 /// Representation of a tokenized vault following the standard defined in
-/// https://github.com/apollodao/cosmwasm-vault-standard#cw4626
+/// https://github.com/apollodao/cosmwasm-vault-standard#cw4626, and any
+/// contract using this abstraction must implement support the messages
+/// defined in the standard. Note that `Cw4626` does not support the Cw20
+/// Minter extension, so only the `cw4626` contract itself can mint tokens.
+/// This implementation also does not support initial balances.
+///
+/// To keep compatibility with OsmosisDenom `burn_from` is not implemented.
+/// This means that before tokens can be burned they must be transferred to
+/// the `cw4626` contract using [`Cw4626::receive`].
 ///
 /// This struct implements the [`VaultToken`] trait.
 pub struct Cw4626 {
@@ -24,6 +32,23 @@ pub struct Cw4626 {
 }
 
 impl Cw4626 {
+    /// Creates a new [`Cw4626`] instance from an [`&Env`].
+    ///
+    /// ## Example
+    /// Create a new [`Cw4626`] instance for the current contract and
+    /// instantiate it.
+    ///
+    /// ```ignore
+    /// pub fn instantiate(
+    ///     deps: DepsMut,
+    ///     env: Env,
+    ///     info: MessageInfo,
+    ///     msg: InstantiateMsg,
+    /// ) -> Result<Response, ContractError> {
+    ///     let cw4626 = Cw4626::new(&env);
+    ///     cw4626.instantiate(deps, to_binary(&msg.init_info)?)
+    /// }
+    /// ```
     pub fn new(env: &Env) -> Self {
         Cw4626 {
             address: env.contract.address.clone(),
@@ -32,6 +57,7 @@ impl Cw4626 {
 }
 
 impl Display for Cw4626 {
+    /// Returns the address of the contract as a string.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.address)
     }
@@ -131,8 +157,8 @@ impl Burn for Cw4626 {
 }
 
 #[cw_serde]
-/// Instantiate message for a cw4626 token. Contains the same fields as cw20_base::InstantiateMsg,
-/// except `initial_balances` is not allowed.
+/// Instantiate message for a cw4626 token. Contains the same fields as
+/// [`cw20_base::InstantiateMsg`], omitting `initial_balances` and `minter`.
 pub struct Cw4626InstantiateMsg {
     /// Name of the token
     pub name: String,
@@ -185,8 +211,8 @@ impl Instantiate for Cw4626 {
                     .marketing
                     .map(|addr| deps.api.addr_validate(&addr))
                     .transpose()?,
-                logo: None, /* TODO: For some reason all the logo validation functions are private. We
-                             * ignore logo info for now. */
+                logo: None, /* TODO: For some reason all the logo validation functions are
+                             * private. We ignore logo info for now. */
             };
             MARKETING_INFO.save(deps.storage, &data)?;
         }
