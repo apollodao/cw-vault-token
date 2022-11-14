@@ -17,7 +17,7 @@ use crate::{Burn, CwTokenResponse, CwTokenResult, Instantiate, Mint, Receive, Va
 #[cw_serde]
 /// Representation of a tokenized vault following the standard defined in
 /// https://github.com/apollodao/cosmwasm-vault-standard#cw4626, and any
-/// contract using this abstraction must implement support the messages
+/// contract using this abstraction must implement the messages
 /// defined in the standard. Note that `Cw4626` does not support the Cw20
 /// Minter extension, so only the `cw4626` contract itself can mint tokens.
 /// This implementation also does not support initial balances.
