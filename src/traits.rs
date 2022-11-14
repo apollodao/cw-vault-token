@@ -2,7 +2,7 @@ use cosmwasm_std::{Addr, Binary, Deps, DepsMut, Env, MessageInfo, StdResult, Uin
 
 use std::fmt::Display;
 
-use crate::{CwTokenError, CwTokenResponse, CwTokenResult};
+use crate::{CwTokenResponse, CwTokenResult};
 
 /// Combined trait for implementations that can be used as a vault token.
 pub trait VaultToken: Instantiate + Mint + Burn + Receive + Display {

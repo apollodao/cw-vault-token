@@ -105,7 +105,7 @@ impl VaultToken for OsmosisDenom {
             .supply_of(self.to_string())?
             .amount
             .map(|c| c.amount)
-            .ok_or(StdError::not_found("amount in supply response"))?;
+            .ok_or_else(|| StdError::not_found("amount in supply response"))?;
         Ok(Uint128::from_str(&amount_str)?)
     }
 }
