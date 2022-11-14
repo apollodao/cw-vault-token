@@ -8,15 +8,15 @@ use crate::{CwTokenResponse, CwTokenResult};
 pub trait VaultToken: Instantiate + Mint + Burn + Receive + Display {
     /// ## Description
     /// Query the balance of the vault token for `address`.
-    /// # Errors
     ///
+    /// ## Errors
     /// May return `CwTokenError`.
     fn query_balance<A: Into<String>>(&self, deps: Deps, address: A) -> CwTokenResult<Uint128>;
 
     /// ## Description
     /// Query the total supply of the vault token.
-    /// # Errors
     ///
+    /// ## Errors
     /// May return `CwTokenError`.
     fn query_total_supply(&self, deps: Deps) -> CwTokenResult<Uint128>;
 }
@@ -39,7 +39,10 @@ pub trait Instantiate {
     /// ## Returns
     /// Returns a Response containing the messages to instantiate the token.
     ///
-    /// ## Example (pseudocode)
+    /// ## Errors
+    /// May return [`CwTokenError`]
+    ///
+    /// ## Example usage (pseudocode)
     /// ```ignore
     /// #[cfg_attr(not(feature = "library"), entry_point)]
     /// pub fn instantiate(
@@ -52,9 +55,6 @@ pub trait Instantiate {
     ///     my_token.instantiate(deps, to_binary(&msg.init_info)?)
     /// }
     /// ```
-    /// # Errors
-    ///
-    /// May return `CwTokenError`.
     fn instantiate(&self, deps: DepsMut, init_info: Option<Binary>) -> CwTokenResponse;
 }
 
@@ -65,9 +65,10 @@ pub trait Mint {
     /// The contract should validate that the recipient is allowed to do this
     /// before calling the function, i.e. make sure that the recipient has
     /// sent sufficient assets to the vault, or perform a `transfer_from`,
-    /// or similar. # Errors
+    /// or similar.
     ///
-    /// May return `CwTokenError`.
+    /// ## Errors
+    /// May return [`CwTokenError`].
     fn mint(&self, deps: DepsMut, env: &Env, recipient: &Addr, amount: Uint128) -> CwTokenResponse;
 }
 
@@ -75,8 +76,8 @@ pub trait Mint {
 pub trait Burn {
     /// ## Description
     /// Burns vault tokens from the contract's balance.
-    /// # Errors
     ///
+    /// ## Errors
     /// May return `CwTokenError`.
     fn burn(&self, deps: DepsMut, env: &Env, amount: Uint128) -> CwTokenResponse;
 }
@@ -91,9 +92,9 @@ pub trait Receive {
     /// balance into the contract's. We do this so that we can call this at
     /// the beginning of a contract `ExecuteMsg` handler, and then know that
     /// after this the behavior is the same for both for both implementations.
-    /// # Errors
     ///
-    /// May return `CwTokenError`.
+    /// ## Errors
+    /// May return [`CwTokenError`].
     fn receive(
         &self,
         deps: DepsMut,
