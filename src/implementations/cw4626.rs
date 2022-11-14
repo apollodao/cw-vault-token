@@ -18,7 +18,7 @@ use crate::{Burn, CwTokenResponse, CwTokenResult, Instantiate, Mint, Receive, Va
 /// Representation of a tokenized vault following the standard defined in
 /// https://github.com/apollodao/cosmwasm-vault-standard#cw4626
 ///
-/// This implements the [`VaultToken`] trait.
+/// This struct implements the [`VaultToken`] trait.
 pub struct Cw4626(pub Addr);
 
 impl Cw4626 {
