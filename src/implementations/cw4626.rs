@@ -19,24 +19,27 @@ use crate::{Burn, CwTokenResponse, CwTokenResult, Instantiate, Mint, Receive, Va
 /// https://github.com/apollodao/cosmwasm-vault-standard#cw4626
 ///
 /// This struct implements the [`VaultToken`] trait.
-pub struct Cw4626(pub Addr);
+pub struct Cw4626 {
+    address: Addr,
+}
 
 impl Cw4626 {
-    /// Creates a new [`Cw4626`] obj instance
-    pub fn new(addr: Addr) -> Self {
-        Cw4626(addr)
+    pub fn new(env: &Env) -> Self {
+        Cw4626 {
+            address: env.contract.address.clone(),
+        }
     }
 }
 
 impl Display for Cw4626 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{}", self.address)
     }
 }
 
 impl From<Cw4626> for AssetInfo {
     fn from(cw20_asset: Cw4626) -> Self {
-        Self::Cw20(cw20_asset.0)
+        Self::Cw20(cw20_asset.address)
     }
 }
 
@@ -45,7 +48,7 @@ impl TryFrom<AssetInfo> for Cw4626 {
 
     fn try_from(asset_info: AssetInfo) -> StdResult<Self> {
         match asset_info {
-            AssetInfo::Cw20(address) => Ok(Self(address)),
+            AssetInfo::Cw20(address) => Ok(Self { address }),
             _ => Err(StdError::generic_err(
                 "Cannot convert non-cw20 asset to Cw20.",
             )),
@@ -252,7 +255,9 @@ mod test {
         let mut deps = mock_dependencies();
         let env = mock_env();
 
-        let cw4626 = Cw4626(Addr::unchecked("cw4626"));
+        let cw4626 = Cw4626 {
+            address: Addr::unchecked("cw4626"),
+        };
 
         instantiate_cw4626(cw4626.clone(), deps.as_mut()).unwrap();
 
@@ -271,7 +276,9 @@ mod test {
     #[test]
     fn test_instantiate() {
         let mut deps = mock_dependencies();
-        let cw4626 = Cw4626(Addr::unchecked("cw4626"));
+        let cw4626 = Cw4626 {
+            address: Addr::unchecked("cw4626"),
+        };
 
         instantiate_cw4626(cw4626, deps.as_mut()).unwrap();
 
@@ -392,11 +399,13 @@ mod test {
 
     #[test]
     fn test_into_asset_info() {
-        let cw4626 = Cw4626(Addr::unchecked("cw4626"));
+        let cw4626 = Cw4626 {
+            address: Addr::unchecked("cw4626"),
+        };
 
         let asset_info: AssetInfo = cw4626.clone().into();
 
-        assert_eq!(asset_info, AssetInfo::Cw20(cw4626.0));
+        assert_eq!(asset_info, AssetInfo::Cw20(cw4626.address));
     }
 
     #[test]
@@ -405,7 +414,12 @@ mod test {
 
         let cw4626 = Cw4626::try_from(asset_info).unwrap();
 
-        assert_eq!(cw4626, Cw4626(Addr::unchecked("cw4626")));
+        assert_eq!(
+            cw4626,
+            Cw4626 {
+                address: Addr::unchecked("cw4626")
+            }
+        );
 
         let asset_info = AssetInfo::Native("native".to_string());
 
@@ -419,7 +433,9 @@ mod test {
 
     #[test]
     fn test_to_string() {
-        let cw4626 = Cw4626(Addr::unchecked("cw4626"));
+        let cw4626 = Cw4626 {
+            address: Addr::unchecked("cw4626"),
+        };
 
         assert_eq!(cw4626.to_string(), "cw4626");
     }
