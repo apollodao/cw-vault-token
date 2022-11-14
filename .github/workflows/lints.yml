@@ -16,9 +16,15 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.59.0
+          toolchain: 1.65.0
           override: true
           components: rustfmt, clippy
+
+      - name: Install cargo-machete
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: cargo-machete
 
       - name: Run cargo clippy
         uses: actions-rs/cargo@v1
@@ -31,3 +37,8 @@ jobs:
         with:
           command: fmt
           args: --all -- --check
+
+      - name: Run cargo machete
+        uses: actions-rs/cargo@v1
+        with:
+          command: machete
