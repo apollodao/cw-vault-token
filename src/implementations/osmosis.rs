@@ -5,11 +5,9 @@ use cosmwasm_std::{
     Addr, BankMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, Event, MessageInfo, Response,
     StdError, StdResult, Uint128,
 };
-use cw_asset::AssetInfo;
 use osmosis_std::types::cosmos::bank::v1beta1::BankQuerier;
 use osmosis_std::types::cosmos::base::v1beta1::Coin as CoinMsg;
 use osmosis_std::types::osmosis::tokenfactory::v1beta1::{MsgBurn, MsgCreateDenom, MsgMint};
-use std::convert::TryFrom;
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -61,33 +59,6 @@ impl Display for OsmosisDenom {
     /// `factory/{owner}/{subdenom}`.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "factory/{}/{}", self.owner, self.subdenom)
-    }
-}
-
-impl From<OsmosisDenom> for AssetInfo {
-    fn from(denom: OsmosisDenom) -> Self {
-        Self::Native(denom.to_string())
-    }
-}
-
-impl TryFrom<AssetInfo> for OsmosisDenom {
-    type Error = StdError;
-
-    fn try_from(asset_info: AssetInfo) -> StdResult<Self> {
-        match asset_info {
-            AssetInfo::Native(denom) => Self::from_native_denom(denom.as_str()),
-            _ => Err(StdError::generic_err(
-                "Cannot convert non-native asset to OsmosisDenom.",
-            )),
-        }
-    }
-}
-
-impl TryFrom<&AssetInfo> for OsmosisDenom {
-    type Error = StdError;
-
-    fn try_from(asset_info: &AssetInfo) -> StdResult<Self> {
-        Self::try_from(asset_info.clone())
     }
 }
 
@@ -221,34 +192,6 @@ mod test {
 
         // Denom does not start with "factory"
         assert!(OsmosisDenom::from_native_denom("wrong/sender/subdenom").is_err());
-    }
-
-    #[test]
-    fn test_into_asset_info() {
-        let denom = OsmosisDenom::new(SENDER.to_string(), SUBDENOM.to_string());
-        let asset_info: AssetInfo = denom.into();
-        assert_eq!(
-            asset_info,
-            AssetInfo::Native(format!("factory/{}/{}", SENDER, SUBDENOM))
-        );
-    }
-
-    #[test]
-    fn test_try_from_asset_info() {
-        // Native asset
-        let asset_info = AssetInfo::Native(format!("factory/{}/{}", SENDER, SUBDENOM));
-        let denom = OsmosisDenom::try_from(asset_info).unwrap();
-        assert_eq!(denom.owner, SENDER);
-        assert_eq!(denom.subdenom, SUBDENOM);
-
-        // Non-native asset
-        let asset_info = AssetInfo::Cw20(Addr::unchecked("addr"));
-        let err = OsmosisDenom::try_from(asset_info).unwrap_err();
-
-        assert_eq!(
-            err,
-            StdError::generic_err("Cannot convert non-native asset to OsmosisDenom.")
-        );
     }
 
     #[test]
