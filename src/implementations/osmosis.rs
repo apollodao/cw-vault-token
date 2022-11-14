@@ -14,11 +14,21 @@ use std::fmt::Display;
 use std::str::FromStr;
 
 #[cw_serde]
-/// Handle Osmosis Denom path for factory on cw-token
+/// Representation of a native token created using the Osmosis Token Factory.
+/// The denom of the token will be `factory/{owner}/{subdenom}`. If this token
+/// has not yet been created, the `instantiate` function must first be called
+/// and its response included in the transaction. If the token has already been
+/// created an [`OsmosisDenom`] object can be created directly
+/// using [`OsmosisDenom::new`] or [`OsmosisDenom::from_native_denom`]. Note
+/// that currently only the creator of the denom can mint or burn it.
+///
+/// This struct implements the [`VaultToken`] trait.
 pub struct OsmosisDenom {
-    /// grouping name
+    /// Creator and owner of the denom. Only this address can mint and burn
+    /// tokens.
     pub owner: String,
-    /// sub denom
+    /// The subdenom of the token. All tokens created using the token factory
+    /// have the format `factory/{owner}/{subdenom}`.
     pub subdenom: String,
 }
 
@@ -28,10 +38,11 @@ impl OsmosisDenom {
         Self { owner, subdenom }
     }
 
-    /// Create a Denom using factory owner
-    /// # Errors
+    /// Create an [`OsmosisDenom`] from a string. `denom` must be the full denom
+    /// of the token, in the format `factory/{owner}/{subdenom}`.
     ///
-    /// Will return `Err` if `denom` is not well formed.
+    /// ## Errors
+    /// Will return [`StdError`] if `denom` does not follow the required format.
     pub fn from_native_denom(denom: &str) -> StdResult<Self> {
         let parts: Vec<_> = denom.split('/').collect();
 
@@ -46,6 +57,8 @@ impl OsmosisDenom {
 }
 
 impl Display for OsmosisDenom {
+    /// Returns the full denom of the token, in the format
+    /// `factory/{owner}/{subdenom}`.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "factory/{}/{}", self.owner, self.subdenom)
     }
@@ -92,7 +105,7 @@ impl VaultToken for OsmosisDenom {
             .supply_of(self.to_string())?
             .amount
             .map(|c| c.amount)
-            .ok_or(StdError::not_found("amount in supply response"))?;
+            .ok_or_else(|| StdError::not_found("amount in supply response"))?;
         Ok(Uint128::from_str(&amount_str)?)
     }
 }
@@ -200,13 +213,13 @@ mod test {
         assert_eq!(denom.owner, "sender");
         assert_eq!(denom.subdenom, "subdenom");
 
-        // Too few parts
+        // Denom contains too few parts
         assert!(OsmosisDenom::from_native_denom("factory/sender").is_err());
 
-        // Too many parts
+        // Denom contains too many parts
         assert!(OsmosisDenom::from_native_denom("factory/sender/subdenom/extra").is_err());
 
-        // Wrong prefix
+        // Denom does not start with "factory"
         assert!(OsmosisDenom::from_native_denom("wrong/sender/subdenom").is_err());
     }
 

@@ -16,27 +16,57 @@ use crate::{Burn, CwTokenResponse, CwTokenResult, Instantiate, Mint, Receive, Va
 
 #[cw_serde]
 /// Representation of a tokenized vault following the standard defined in
-/// https://github.com/apollodao/cosmwasm-vault-standard#cw4626
+/// <https://github.com/apollodao/cosmwasm-vault-standard#cw4626>, and any
+/// contract using this abstraction must implement the messages
+/// defined in the standard. Note that `Cw4626` does not support the Cw20
+/// Minter extension, so only the `cw4626` contract itself can mint tokens.
+/// This implementation also does not support initial balances.
+///
+/// To keep compatibility with OsmosisDenom `burn_from` is not implemented.
+/// This means that before tokens can be burned they must be transferred to
+/// the `cw4626` contract using [`Cw4626::receive`].
 ///
 /// This struct implements the [`VaultToken`] trait.
-pub struct Cw4626(pub Addr);
+pub struct Cw4626 {
+    address: Addr,
+}
 
 impl Cw4626 {
-    /// Creates a new [`Cw4626`] obj instance
-    pub fn new(addr: Addr) -> Self {
-        Cw4626(addr)
+    /// Creates a new [`Cw4626`] instance from a reference to
+    /// [`cosmwasm_std::Env`].
+    ///
+    /// ## Example
+    /// Create a new [`Cw4626`] instance for the current contract and
+    /// instantiate it.
+    ///
+    /// ```ignore
+    /// pub fn instantiate(
+    ///     deps: DepsMut,
+    ///     env: Env,
+    ///     info: MessageInfo,
+    ///     msg: InstantiateMsg,
+    /// ) -> Result<Response, ContractError> {
+    ///     let cw4626 = Cw4626::new(&env);
+    ///     cw4626.instantiate(deps, to_binary(&msg.init_info)?)
+    /// }
+    /// ```
+    pub fn new(env: &Env) -> Self {
+        Cw4626 {
+            address: env.contract.address.clone(),
+        }
     }
 }
 
 impl Display for Cw4626 {
+    /// Returns the address of the contract as a string.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{}", self.address)
     }
 }
 
 impl From<Cw4626> for AssetInfo {
     fn from(cw20_asset: Cw4626) -> Self {
-        Self::Cw20(cw20_asset.0)
+        Self::Cw20(cw20_asset.address)
     }
 }
 
@@ -45,7 +75,7 @@ impl TryFrom<AssetInfo> for Cw4626 {
 
     fn try_from(asset_info: AssetInfo) -> StdResult<Self> {
         match asset_info {
-            AssetInfo::Cw20(address) => Ok(Self(address)),
+            AssetInfo::Cw20(address) => Ok(Self { address }),
             _ => Err(StdError::generic_err(
                 "Cannot convert non-cw20 asset to Cw20.",
             )),
@@ -128,8 +158,8 @@ impl Burn for Cw4626 {
 }
 
 #[cw_serde]
-/// Instantiate message for a cw4626 token. Contains the same fields as cw20_base::InstantiateMsg,
-/// except `initial_balances` is not allowed.
+/// Instantiate message for a cw4626 token. Contains the same fields as
+/// [`cw20_base::msg::InstantiateMsg`], omitting `initial_balances` and `minter`.
 pub struct Cw4626InstantiateMsg {
     /// Name of the token
     pub name: String,
@@ -182,8 +212,8 @@ impl Instantiate for Cw4626 {
                     .marketing
                     .map(|addr| deps.api.addr_validate(&addr))
                     .transpose()?,
-                logo: None, /* TODO: For some reason all the logo validation functions are private. We
-                             * ignore logo info for now. */
+                logo: None, /* TODO: For some reason all the logo validation functions are
+                             * private. We ignore logo info for now. */
             };
             MARKETING_INFO.save(deps.storage, &data)?;
         }
@@ -223,10 +253,8 @@ impl Receive for Cw4626 {
 
 #[cfg(test)]
 mod test {
-    use cosmwasm_std::{
-        testing::{mock_dependencies, mock_env, mock_info, MockApi, MockQuerier},
-        to_binary, MemoryStorage, OverflowError, OverflowOperation, OwnedDeps,
-    };
+    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info, MockApi, MockQuerier};
+    use cosmwasm_std::{to_binary, MemoryStorage, OverflowError, OverflowOperation, OwnedDeps};
 
     use crate::CwTokenError;
 
@@ -252,7 +280,9 @@ mod test {
         let mut deps = mock_dependencies();
         let env = mock_env();
 
-        let cw4626 = Cw4626(Addr::unchecked("cw4626"));
+        let cw4626 = Cw4626 {
+            address: Addr::unchecked("cw4626"),
+        };
 
         instantiate_cw4626(cw4626.clone(), deps.as_mut()).unwrap();
 
@@ -271,7 +301,9 @@ mod test {
     #[test]
     fn test_instantiate() {
         let mut deps = mock_dependencies();
-        let cw4626 = Cw4626(Addr::unchecked("cw4626"));
+        let cw4626 = Cw4626 {
+            address: Addr::unchecked("cw4626"),
+        };
 
         instantiate_cw4626(cw4626, deps.as_mut()).unwrap();
 
@@ -392,11 +424,13 @@ mod test {
 
     #[test]
     fn test_into_asset_info() {
-        let cw4626 = Cw4626(Addr::unchecked("cw4626"));
+        let cw4626 = Cw4626 {
+            address: Addr::unchecked("cw4626"),
+        };
 
         let asset_info: AssetInfo = cw4626.clone().into();
 
-        assert_eq!(asset_info, AssetInfo::Cw20(cw4626.0));
+        assert_eq!(asset_info, AssetInfo::Cw20(cw4626.address));
     }
 
     #[test]
@@ -405,7 +439,12 @@ mod test {
 
         let cw4626 = Cw4626::try_from(asset_info).unwrap();
 
-        assert_eq!(cw4626, Cw4626(Addr::unchecked("cw4626")));
+        assert_eq!(
+            cw4626,
+            Cw4626 {
+                address: Addr::unchecked("cw4626")
+            }
+        );
 
         let asset_info = AssetInfo::Native("native".to_string());
 
@@ -419,7 +458,9 @@ mod test {
 
     #[test]
     fn test_to_string() {
-        let cw4626 = Cw4626(Addr::unchecked("cw4626"));
+        let cw4626 = Cw4626 {
+            address: Addr::unchecked("cw4626"),
+        };
 
         assert_eq!(cw4626.to_string(), "cw4626");
     }
