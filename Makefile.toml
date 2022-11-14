@@ -35,6 +35,10 @@ args = [
     "--release",
 ]
 
+[tasks.machete]
+command = "cargo"
+args = ["machete"]
+
 # Run automatically on "cargo make". This is the default task. We keep all the
 # default tasks and add our own "custom" task.
 [tasks.dev-test-flow]
@@ -42,7 +46,7 @@ run_task = "custom-default"
 
 # Custom tasks to run on "cargo make"
 [tasks.custom-default]
-dependencies = ["deny", "clippy", "docs"]
+dependencies = ["deny", "clippy", "docs", "machete"]
 
 # Docs and Test coverage are not run by default. Can run all with "cargo make all".
 [tasks.all]
