@@ -213,7 +213,7 @@ mod test {
         assert_eq!(denom.owner, "sender");
         assert_eq!(denom.subdenom, "subdenom");
 
-        // Denom containd too few parts
+        // Denom contains too few parts
         assert!(OsmosisDenom::from_native_denom("factory/sender").is_err());
 
         // Denom contains too many parts
