@@ -20,18 +20,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "216261ddc8289130e551ddcd5ce8a064710c0d064a4d2895c67151c92b5443f6"
 
 [[package]]
-name = "apollo-proto-rust"
-version = "0.2.0"
-source = "git+https://github.com/apollodao/apollo-proto-rust?tag=v0.3.1#9bccd5adb064e9022d55225a45ba4f0842da4933"
-dependencies = [
- "cosmwasm-std",
- "prost",
- "prost-types",
- "schemars",
- "serde",
-]
-
-[[package]]
 name = "autocfg"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -93,9 +81,9 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "chrono"
-version = "0.4.22"
+version = "0.4.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bfd4d1b31faaa3a89d7934dbded3111da0d2ef28e3ebccdb4f0179f5929d1ef1"
+checksum = "16b0a3d9ed01224b22057780a37bb8c5dbfe1be8ba48678e7bf57ec4b385411f"
 dependencies = [
  "num-integer",
  "num-traits",
@@ -103,9 +91,9 @@ dependencies = [
 
 [[package]]
 name = "const-oid"
-version = "0.9.0"
+version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "722e23542a15cea1f65d4a1419c4cfd7a26706c70871a13a04238ca3f40f1661"
+checksum = "cec318a675afcb6a1ea1d4340e2d377e56e47c266f28043ceccbf4412ddfdd3b"
 
 [[package]]
 name = "cosmwasm-crypto"
@@ -265,7 +253,6 @@ dependencies = [
 name = "cw-vault-token"
 version = "0.1.0"
 dependencies = [
- "apollo-proto-rust",
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-asset",
@@ -572,7 +559,7 @@ checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 [[package]]
 name = "osmosis-std"
 version = "0.12.0"
-source = "git+https://github.com/osmosis-labs/osmosis-rust.git?branch=main#9b010acf59d631cf099f2b45dbc011a4d99b37f8"
+source = "git+https://github.com/osmosis-labs/osmosis-rust.git?rev=b3df85158eb52ad5d99f3580f4a128bbdaeffa17#b3df85158eb52ad5d99f3580f4a128bbdaeffa17"
 dependencies = [
  "chrono",
  "cosmwasm-std",
@@ -587,7 +574,7 @@ dependencies = [
 [[package]]
 name = "osmosis-std-derive"
 version = "0.12.0"
-source = "git+https://github.com/osmosis-labs/osmosis-rust.git?branch=main#9b010acf59d631cf099f2b45dbc011a4d99b37f8"
+source = "git+https://github.com/osmosis-labs/osmosis-rust.git?rev=b3df85158eb52ad5d99f3580f4a128bbdaeffa17#b3df85158eb52ad5d99f3580f4a128bbdaeffa17"
 dependencies = [
  "itertools",
  "proc-macro2",
