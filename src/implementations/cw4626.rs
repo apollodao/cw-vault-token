@@ -10,7 +10,6 @@ use cw20_base::contract::query_balance;
 use cw20_base::msg::{InstantiateMarketingInfo, InstantiateMsg};
 use cw20_base::state::{TokenInfo, BALANCES, MARKETING_INFO, TOKEN_INFO};
 use cw20_base::ContractError;
-use cw_asset::AssetInfo;
 
 use crate::{Burn, CwTokenResponse, CwTokenResult, Instantiate, Mint, Receive, VaultToken};
 
@@ -61,25 +60,6 @@ impl Display for Cw4626 {
     /// Returns the address of the contract as a string.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.address)
-    }
-}
-
-impl From<Cw4626> for AssetInfo {
-    fn from(cw20_asset: Cw4626) -> Self {
-        Self::Cw20(cw20_asset.address)
-    }
-}
-
-impl TryFrom<AssetInfo> for Cw4626 {
-    type Error = StdError;
-
-    fn try_from(asset_info: AssetInfo) -> StdResult<Self> {
-        match asset_info {
-            AssetInfo::Cw20(address) => Ok(Self { address }),
-            _ => Err(StdError::generic_err(
-                "Cannot convert non-cw20 asset to Cw20.",
-            )),
-        }
     }
 }
 
@@ -420,40 +400,6 @@ mod test {
         // Assert correct total supply
         let token_info = TOKEN_INFO.load(&deps.storage).unwrap();
         assert_eq!(token_info.total_supply, mint_amount);
-    }
-
-    #[test]
-    fn test_into_asset_info() {
-        let cw4626 = Cw4626 {
-            address: Addr::unchecked("cw4626"),
-        };
-
-        let asset_info: AssetInfo = cw4626.clone().into();
-
-        assert_eq!(asset_info, AssetInfo::Cw20(cw4626.address));
-    }
-
-    #[test]
-    fn test_try_from_asset_info() {
-        let asset_info = AssetInfo::Cw20(Addr::unchecked("cw4626"));
-
-        let cw4626 = Cw4626::try_from(asset_info).unwrap();
-
-        assert_eq!(
-            cw4626,
-            Cw4626 {
-                address: Addr::unchecked("cw4626")
-            }
-        );
-
-        let asset_info = AssetInfo::Native("native".to_string());
-
-        let res = Cw4626::try_from(asset_info).unwrap_err();
-
-        assert_eq!(
-            res,
-            StdError::generic_err("Cannot convert non-cw20 asset to Cw20.",)
-        );
     }
 
     #[test]
