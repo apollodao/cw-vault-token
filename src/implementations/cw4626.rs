@@ -139,7 +139,8 @@ impl Burn for Cw4626 {
 
 #[cw_serde]
 /// Instantiate message for a cw4626 token. Contains the same fields as
-/// [`cw20_base::msg::InstantiateMsg`], omitting `initial_balances` and `minter`.
+/// [`cw20_base::msg::InstantiateMsg`], omitting `initial_balances` and
+/// `minter`.
 pub struct Cw4626InstantiateMsg {
     /// Name of the token
     pub name: String,
