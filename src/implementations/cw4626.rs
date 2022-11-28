@@ -193,8 +193,7 @@ impl Instantiate for Cw4626 {
                     .marketing
                     .map(|addr| deps.api.addr_validate(&addr))
                     .transpose()?,
-                logo: None, /* TODO: For some reason all the logo validation functions are
-                             * private. We ignore logo info for now. */
+                logo: None,
             };
             MARKETING_INFO.save(deps.storage, &data)?;
         }

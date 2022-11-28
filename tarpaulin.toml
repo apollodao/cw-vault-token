@@ -5,6 +5,6 @@ exclude-files=[
     "test/**/*",
     "mod.rs"
 ]
-fail-under=0 # TODO: update this
+fail-under=55
 no-fail-fast=true
 skip-clean=false
