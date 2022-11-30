@@ -649,7 +649,7 @@ dependencies = [
  "downloader",
  "git2",
  "git2_credentials",
- "osmosis-testing",
+ "osmosis-testing 0.12.0 (git+https://github.com/apollodao/osmosis-rust.git)",
  "prost",
  "serde",
  "serde_json",
@@ -708,8 +708,8 @@ dependencies = [
  "cw-utils 0.16.0",
  "cw20",
  "cw20-base",
- "osmosis-std 0.12.0 (git+https://github.com/osmosis-labs/osmosis-rust.git?rev=b3df85158eb52ad5d99f3580f4a128bbdaeffa17)",
- "osmosis-testing",
+ "osmosis-std 0.12.0",
+ "osmosis-testing 0.12.0",
  "serde",
  "thiserror",
 ]
@@ -1936,11 +1936,10 @@ checksum = "9b7820b9daea5457c9f21c69448905d723fbd21136ccf521748f23fd49e723ee"
 [[package]]
 name = "osmosis-std"
 version = "0.12.0"
-source = "git+https://github.com/apollodao/osmosis-rust?branch=feat/latest-build#023ebc1f2e620d9dff633456156f4298f741209d"
 dependencies = [
  "chrono",
  "cosmwasm-std",
- "osmosis-std-derive 0.12.0 (git+https://github.com/apollodao/osmosis-rust?branch=feat/latest-build)",
+ "osmosis-std-derive 0.12.0",
  "prost",
  "prost-types",
  "schemars",
@@ -1951,11 +1950,11 @@ dependencies = [
 [[package]]
 name = "osmosis-std"
 version = "0.12.0"
-source = "git+https://github.com/osmosis-labs/osmosis-rust.git?rev=b3df85158eb52ad5d99f3580f4a128bbdaeffa17#b3df85158eb52ad5d99f3580f4a128bbdaeffa17"
+source = "git+https://github.com/apollodao/osmosis-rust?branch=feat/latest-build#023ebc1f2e620d9dff633456156f4298f741209d"
 dependencies = [
  "chrono",
  "cosmwasm-std",
- "osmosis-std-derive 0.12.0 (git+https://github.com/osmosis-labs/osmosis-rust.git?rev=b3df85158eb52ad5d99f3580f4a128bbdaeffa17)",
+ "osmosis-std-derive 0.12.0 (git+https://github.com/apollodao/osmosis-rust?branch=feat/latest-build)",
  "prost",
  "prost-types",
  "schemars",
@@ -1981,7 +1980,6 @@ dependencies = [
 [[package]]
 name = "osmosis-std-derive"
 version = "0.12.0"
-source = "git+https://github.com/apollodao/osmosis-rust?branch=feat/latest-build#023ebc1f2e620d9dff633456156f4298f741209d"
 dependencies = [
  "itertools",
  "proc-macro2",
@@ -1992,7 +1990,7 @@ dependencies = [
 [[package]]
 name = "osmosis-std-derive"
 version = "0.12.0"
-source = "git+https://github.com/osmosis-labs/osmosis-rust.git?rev=b3df85158eb52ad5d99f3580f4a128bbdaeffa17#b3df85158eb52ad5d99f3580f4a128bbdaeffa17"
+source = "git+https://github.com/apollodao/osmosis-rust?branch=feat/latest-build#023ebc1f2e620d9dff633456156f4298f741209d"
 dependencies = [
  "itertools",
  "proc-macro2",
@@ -2009,6 +2007,22 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "osmosis-testing"
+version = "0.12.0"
+dependencies = [
+ "base64",
+ "bindgen",
+ "cosmrs",
+ "cosmwasm-std",
+ "itertools",
+ "osmosis-std 0.12.0",
+ "prost",
+ "serde",
+ "serde_json",
+ "thiserror",
 ]
 
 [[package]]
