@@ -98,13 +98,12 @@ impl Mint for OsmosisDenom {
         })
         .into();
 
-        let attrs = vec![
+        let event = Event::new("apollo/cw-vault-token/osmosis").add_attributes(vec![
             attr("action", "mint"),
             attr("denom", self.to_string()),
             attr("amount", amount.to_string()),
             attr("recipient", recipient.to_string()),
-        ];
-        let event = Event::new("apollo/cw-vault-token/osmosis").add_attributes(attrs.to_vec());
+        ]);
 
         Ok(Response::new()
             .add_messages(vec![
@@ -117,19 +116,17 @@ impl Mint for OsmosisDenom {
                     }],
                 }),
             ])
-            .add_event(event)
-            .add_attributes(attrs))
+            .add_event(event))
     }
 }
 
 impl Burn for OsmosisDenom {
     fn burn(&self, _deps: DepsMut, env: &Env, amount: Uint128) -> CwTokenResponse {
-        let attrs = vec![
+        let event = Event::new("apollo/cw-vault-token/osmosis").add_attributes(vec![
             attr("action", "burn"),
             attr("denom", self.to_string()),
             attr("amount", amount.to_string()),
-        ];
-        let event = Event::new("apollo/cw-vault-token/osmosis").add_attributes(attrs.to_vec());
+        ]);
         Ok(Response::new()
             .add_message(MsgBurn {
                 amount: Some(CoinMsg {
@@ -138,8 +135,7 @@ impl Burn for OsmosisDenom {
                 }),
                 sender: env.contract.address.to_string(),
             })
-            .add_event(event)
-            .add_attributes(attrs))
+            .add_event(event))
     }
 }
 
