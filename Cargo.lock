@@ -649,7 +649,7 @@ dependencies = [
  "downloader",
  "git2",
  "git2_credentials",
- "osmosis-testing 0.12.0 (git+https://github.com/apollodao/osmosis-rust.git)",
+ "osmosis-testing 0.12.0",
  "prost",
  "serde",
  "serde_json",
@@ -709,7 +709,7 @@ dependencies = [
  "cw20",
  "cw20-base",
  "osmosis-std 0.12.0",
- "osmosis-testing 0.12.0",
+ "osmosis-testing 0.13.1",
  "serde",
  "thiserror",
 ]
@@ -1965,6 +1965,21 @@ dependencies = [
 [[package]]
 name = "osmosis-std"
 version = "0.12.0"
+source = "git+https://github.com/apollodao/osmosis-rust.git?branch=osmosis-v13#38a48533ed88243070b105cb9085e34c2b0c4eeb"
+dependencies = [
+ "chrono",
+ "cosmwasm-std",
+ "osmosis-std-derive 0.12.0 (git+https://github.com/apollodao/osmosis-rust.git?branch=osmosis-v13)",
+ "prost",
+ "prost-types",
+ "schemars",
+ "serde",
+ "serde-cw-value",
+]
+
+[[package]]
+name = "osmosis-std"
+version = "0.12.0"
 source = "git+https://github.com/apollodao/osmosis-rust.git#630714a1e8be9d879ea38f6fcf151c117b787007"
 dependencies = [
  "chrono",
@@ -2001,7 +2016,7 @@ dependencies = [
 [[package]]
 name = "osmosis-std-derive"
 version = "0.12.0"
-source = "git+https://github.com/apollodao/osmosis-rust.git#630714a1e8be9d879ea38f6fcf151c117b787007"
+source = "git+https://github.com/apollodao/osmosis-rust.git?branch=osmosis-v13#38a48533ed88243070b105cb9085e34c2b0c4eeb"
 dependencies = [
  "itertools",
  "proc-macro2",
@@ -2010,20 +2025,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "osmosis-testing"
+name = "osmosis-std-derive"
 version = "0.12.0"
+source = "git+https://github.com/apollodao/osmosis-rust.git#630714a1e8be9d879ea38f6fcf151c117b787007"
 dependencies = [
- "base64",
- "bindgen",
- "cosmrs",
- "cosmwasm-std",
  "itertools",
- "osmosis-std 0.12.0",
- "prost",
- "serde",
- "serde_json",
- "thiserror",
- "tonic",
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -2041,6 +2050,24 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror",
+]
+
+[[package]]
+name = "osmosis-testing"
+version = "0.13.1"
+source = "git+https://github.com/apollodao/osmosis-rust.git?branch=osmosis-v13#38a48533ed88243070b105cb9085e34c2b0c4eeb"
+dependencies = [
+ "base64",
+ "bindgen",
+ "cosmrs",
+ "cosmwasm-std",
+ "itertools",
+ "osmosis-std 0.12.0 (git+https://github.com/apollodao/osmosis-rust.git?branch=osmosis-v13)",
+ "prost",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tonic",
 ]
 
 [[package]]

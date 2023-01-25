@@ -25,7 +25,6 @@ cw-utils = { version = "0.16" }
 serde = { version = "1.0.145", default-features = false, features = ["derive"] }
 
 [dev-dependencies]
-# osmosis-testing = { git = "https://github.com/apollodao/osmosis-rust.git" }
-osmosis-testing = { path = "../osmosis-rust/packages/osmosis-testing" }
+osmosis-testing = { git = "https://github.com/apollodao/osmosis-rust.git", branch = "osmosis-v13" }
 cw-it = { git = "https://github.com/apollodao/cw-it" }
 cw-dex = { git = "https://github.com/apollodao/cw-dex", features = ["osmosis", "astroport"] }
