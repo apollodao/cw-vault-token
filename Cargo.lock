@@ -2023,6 +2023,7 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror",
+ "tonic",
 ]
 
 [[package]]

@@ -71,7 +71,6 @@ impl VaultToken for OsmosisDenom {
     }
 
     fn query_total_supply(&self, deps: Deps) -> CwTokenResult<Uint128> {
-        println!("query total supply");
         let bank_querier = BankQuerier::new(&deps.querier);
         let amount_str = bank_querier
             .supply_of(self.to_string())?
