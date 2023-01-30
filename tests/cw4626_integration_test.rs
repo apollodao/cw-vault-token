@@ -19,28 +19,7 @@ use osmosis_testing::osmosis_std::types::osmosis::tokenfactory::v1beta1::{
 };
 use osmosis_testing::{Account, Gamm, Module, OsmosisTestApp, Runner, SigningAccount, Wasm};
 
-const TEST_CONFIG_PATH: &str = "tests/configs/terra.yaml";
 const SUBDENOM: &str = "subdenom";
-
-#[test]
-/// Runs all tests against LocalTerra
-pub fn test_with_localterra() {
-    // // let _ = env_logger::builder().is_test(true).try_init();
-    // let docker: Cli = Cli::default();
-    // let app = RpcRunner::new(TEST_CONFIG_PATH, &docker);
-
-    // let accs = app
-    //     .test_config
-    //     .import_all_accounts()
-    //     .into_values()
-    //     .collect::<Vec<_>>();
-
-    // let (cw4626, mut deps) = test_instantiate(&app, &accs);
-    // test_mint(&app, &accs, &cw4626, deps.as_mut());
-    // test_burn(&app, &accs, &cw4626, deps.as_mut());
-    // query_vault_supply(&app, &accs,  &cw4626, deps.as_mut());
-    // query_balance(&app, &accs,  &cw4626, deps.as_mut());
-}
 
 #[test]
 /// Runs all tests against the Osmosis bindings

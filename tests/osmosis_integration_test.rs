@@ -18,27 +18,7 @@ use osmosis_testing::osmosis_std::types::osmosis::tokenfactory::v1beta1::{
 };
 use osmosis_testing::{Account, Gamm, Module, OsmosisTestApp, Runner, SigningAccount, Wasm};
 
-const TEST_CONFIG_PATH: &str = "tests/configs/osmosis.yaml";
 const SUBDENOM: &str = "subdenom";
-
-#[test]
-/// Runs all tests against LocalOsmosis
-pub fn test_with_localosmosis() {
-    // let docker: Cli = Cli::default();
-    // let app = RpcRunner::new(TEST_CONFIG_PATH, &docker);
-
-    // let accs = app
-    //     .test_config
-    //     .import_all_accounts()
-    //     .into_values()
-    //     .collect::<Vec<_>>();
-
-    // test_instantiate(&app, &accs);
-    // test_mint(&app, &accs);
-    // test_burn(&app, &accs);
-    // query_vault_supply(&app, &accs);
-    // query_balance(&app, &accs);
-}
 
 #[test]
 /// Runs all tests against the Osmosis bindings
