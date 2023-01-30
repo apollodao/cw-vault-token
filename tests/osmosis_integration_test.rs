@@ -1,22 +1,22 @@
 use cosmwasm_std::testing::{mock_dependencies, mock_env, MockStorage};
 use cosmwasm_std::{
-    attr, to_binary, Addr, AllBalanceResponse, Api, BankQuery, BlockInfo, Coin, ContractInfo,
-    CosmosMsg, Deps, DepsMut, Env, Event, Querier, QuerierWrapper, QueryRequest, Storage,
-    Timestamp, Uint128, WasmQuery,
+    attr, Api, BlockInfo, Coin, ContractInfo,
+    CosmosMsg, DepsMut, Env, Event, Querier, QuerierWrapper, Storage,
+    Timestamp, Uint128,
 };
-use cw_dex::osmosis::OsmosisPool;
-use cw_it::app::App as RpcRunner;
+
+
 use cw_it::mock_api::OsmosisMockApi;
-use cw_it::Cli;
+
 use cw_vault_token::osmosis::OsmosisDenom;
 use cw_vault_token::{Burn, Instantiate, Mint, VaultToken};
-use osmosis_testing::cosmrs::proto::cosmwasm::wasm::v1::MsgExecuteContractResponse;
-use osmosis_testing::cosmrs::tendermint::Time;
+
+
 use osmosis_testing::cosmrs::Any;
 use osmosis_testing::osmosis_std::types::osmosis::tokenfactory::v1beta1::{
     MsgBurnResponse, MsgCreateDenomResponse, MsgMintResponse,
 };
-use osmosis_testing::{Account, Gamm, Module, OsmosisTestApp, Runner, SigningAccount, Wasm};
+use osmosis_testing::{Account, Module, OsmosisTestApp, Runner, SigningAccount};
 
 const SUBDENOM: &str = "subdenom";
 
@@ -108,12 +108,12 @@ where
     let mut expected_event = Event::new("tf_mint".to_string());
 
     expected_event = expected_event.add_attributes(vec![
-        attr("mint_to_address", creator.address().to_string()),
-        attr("amount", format!("{}{}", amount_to_mint, denom.to_string())),
+        attr("mint_to_address", creator.address()),
+        attr("amount", format!("{}{}", amount_to_mint, denom)),
     ]);
 
     // Check that the mint token event is emitted
-    assert_eq!(mint_event.clone().len(), 1);
+    assert_eq!(mint_event.len(), 1);
     assert_eq!(mint_event[0], expected_event);
 
     let transfer_events = res
@@ -126,8 +126,8 @@ where
 
     expected_event = expected_event.add_attributes(vec![
         attr("recipient", recipient.to_string()),
-        attr("sender", creator.address().to_string()),
-        attr("amount", format!("{}{}", amount_to_mint, denom.to_string())),
+        attr("sender", creator.address()),
+        attr("amount", format!("{}{}", amount_to_mint, denom)),
     ]);
 
     // The last transfer event performs the transfer from creator to recipient
@@ -187,7 +187,7 @@ where
 
     let burn_event = res
         .events
-        .clone()
+        
         .into_iter()
         .filter(|r| r.ty == "tf_burn")
         .collect::<Vec<Event>>();
@@ -195,12 +195,12 @@ where
     let mut expected_event = Event::new("tf_burn".to_string());
 
     expected_event = expected_event.add_attributes(vec![
-        attr("burn_from_address", creator.address().to_string()),
-        attr("amount", format!("{}{}", amount_to_burn, denom.to_string())),
+        attr("burn_from_address", creator.address()),
+        attr("amount", format!("{}{}", amount_to_burn, denom)),
     ]);
 
     // Check that the burn token event is emitted
-    assert_eq!(burn_event.clone().len(), 1);
+    assert_eq!(burn_event.len(), 1);
     assert_eq!(burn_event[0], expected_event);
 }
 

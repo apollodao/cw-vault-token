@@ -1,23 +1,21 @@
-use std::collections::HashMap;
+
 
 use cosmwasm_std::testing::{mock_dependencies, mock_env, MockApi, MockQuerier};
 use cosmwasm_std::{
-    attr, to_binary, Addr, Api, Coin, CosmosMsg, Deps, DepsMut, Empty, Event, MemoryStorage,
-    OwnedDeps, StdError, StdResult, Uint128,
+    to_binary, Api, Coin, DepsMut, Empty, MemoryStorage,
+    OwnedDeps, Uint128,
 };
 use cw20_base::state::{TokenInfo, TOKEN_INFO};
-use cw_dex::osmosis::OsmosisPool;
-use cw_it::app::App as RpcRunner;
-use cw_it::config::{Contract, TestConfig};
-use cw_it::Cli;
+
+
+
+
 use cw_vault_token::cw4626::{Cw4626, Cw4626InstantiateMsg};
-use cw_vault_token::osmosis::OsmosisDenom;
+
 use cw_vault_token::{Burn, Instantiate, Mint, VaultToken};
-use osmosis_testing::cosmrs::proto::cosmwasm::wasm::v1::MsgExecuteContractResponse;
-use osmosis_testing::osmosis_std::types::osmosis::tokenfactory::v1beta1::{
-    MsgBurnResponse, MsgCreateDenomResponse, MsgMintResponse,
-};
-use osmosis_testing::{Account, Gamm, Module, OsmosisTestApp, Runner, SigningAccount, Wasm};
+
+
+use osmosis_testing::{Account, Module, OsmosisTestApp, Runner, SigningAccount};
 
 const SUBDENOM: &str = "subdenom";
 
@@ -44,8 +42,8 @@ pub fn test_with_osmosis_bindings() {
 }
 
 pub fn test_instantiate<R>(
-    app: &R,
-    accs: &Vec<SigningAccount>,
+    _app: &R,
+    _accs: &Vec<SigningAccount>,
 ) -> (
     Cw4626,
     OwnedDeps<MemoryStorage, MockApi, MockQuerier<Empty>, Empty>,
@@ -78,10 +76,10 @@ where
         }
     );
 
-    return (cw4626, deps);
+    (cw4626, deps)
 }
 
-pub fn test_mint<R>(app: &R, accs: &Vec<SigningAccount>, cw4626: &Cw4626, mut deps: DepsMut)
+pub fn test_mint<R>(_app: &R, accs: &Vec<SigningAccount>, cw4626: &Cw4626, mut deps: DepsMut)
 where
     R: for<'a> Runner<'a>,
 {
@@ -134,7 +132,7 @@ where
     assert_eq!(balance, Uint128::new(9000000));
 }
 
-pub fn query_vault_supply<R>(_app: &R, accs: &Vec<SigningAccount>, cw4626: &Cw4626, deps: DepsMut)
+pub fn query_vault_supply<R>(_app: &R, _accs: &Vec<SigningAccount>, cw4626: &Cw4626, deps: DepsMut)
 where
     R: for<'a> Runner<'a>,
 {
