@@ -1,19 +1,10 @@
-
-
 use cosmwasm_std::testing::{mock_dependencies, mock_env, MockApi, MockQuerier};
-use cosmwasm_std::{
-    to_binary, Api, Coin, DepsMut, Empty, MemoryStorage,
-    OwnedDeps, Uint128,
-};
+use cosmwasm_std::{to_binary, Api, Coin, DepsMut, Empty, MemoryStorage, OwnedDeps, Uint128};
 use cw20_base::state::{TokenInfo, TOKEN_INFO};
-
-
-
 
 use cw_vault_token::cw4626::{Cw4626, Cw4626InstantiateMsg};
 
 use cw_vault_token::{Burn, Instantiate, Mint, VaultToken};
-
 
 use osmosis_testing::{Account, Module, OsmosisTestApp, Runner, SigningAccount};
 

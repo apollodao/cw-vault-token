@@ -1,16 +1,13 @@
 use cosmwasm_std::testing::{mock_dependencies, mock_env, MockStorage};
 use cosmwasm_std::{
-    attr, Api, BlockInfo, Coin, ContractInfo,
-    CosmosMsg, DepsMut, Env, Event, Querier, QuerierWrapper, Storage,
-    Timestamp, Uint128,
+    attr, Api, BlockInfo, Coin, ContractInfo, CosmosMsg, DepsMut, Env, Event, Querier,
+    QuerierWrapper, Storage, Timestamp, Uint128,
 };
-
 
 use cw_it::mock_api::OsmosisMockApi;
 
 use cw_vault_token::osmosis::OsmosisDenom;
 use cw_vault_token::{Burn, Instantiate, Mint, VaultToken};
-
 
 use osmosis_testing::cosmrs::Any;
 use osmosis_testing::osmosis_std::types::osmosis::tokenfactory::v1beta1::{
@@ -187,7 +184,6 @@ where
 
     let burn_event = res
         .events
-        
         .into_iter()
         .filter(|r| r.ty == "tf_burn")
         .collect::<Vec<Event>>();
