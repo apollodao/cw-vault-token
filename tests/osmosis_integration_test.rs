@@ -35,11 +35,11 @@ pub fn test_with_osmosis_bindings() {
         )
         .unwrap();
 
-    // test_instantiate(&app, &accs);
-    // test_mint(&app, &accs);
-    // test_burn(&app, &accs);
+    test_instantiate(&app, &accs);
+    test_mint(&app, &accs);
+    test_burn(&app, &accs);
     query_total_supply(&app, &accs);
-    // query_balance(&app, &accs);
+    query_balance(&app, &accs);
 }
 
 pub fn test_instantiate<R>(app: &R, accs: &Vec<SigningAccount>)
