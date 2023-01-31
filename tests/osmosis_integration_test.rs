@@ -1,18 +1,11 @@
-
-
 use cosmwasm_std::testing::{mock_dependencies, mock_env, MockApi, MockStorage};
 use cosmwasm_std::{
-    attr, Api, Coin, CosmosMsg, Deps, Empty, Env,
-    Event, Querier, QuerierWrapper,
-    Uint128,
+    attr, Api, Attribute, Coin, CosmosMsg, Deps, Empty, Env, Event, Querier, QuerierWrapper,
+    Response, Uint128,
 };
-
-
 
 use cw_vault_token::osmosis::OsmosisDenom;
 use cw_vault_token::{Burn, Instantiate, Mint, VaultToken};
-
-
 
 use osmosis_testing::osmosis_std::types::osmosis::tokenfactory::v1beta1::{
     MsgBurnResponse, MsgCreateDenomResponse, MsgMintResponse,
@@ -47,14 +40,21 @@ fn mock_env_with_address(deps: Deps, address: &str) -> Env {
 }
 
 #[derive(Clone, Debug)]
-struct TokenRobot<'a, R: Runner<'a> + Querier, T: VaultToken + Clone> {
+struct TokenRobot<'a, R: Runner<'a> + Querier, S: ::prost::Message, T: VaultToken + Clone> {
     app: &'a R,
     denom: &'a T,
+    last_events: Vec<Event>,
 }
 
-impl<'a, R: Runner<'a> + Querier, T: VaultToken + Clone> TokenRobot<'a, R, T> {
+impl<'a, R: Runner<'a> + Querier, S: ::prost::Message, T: VaultToken + Clone>
+    TokenRobot<'a, R, S, T>
+{
     pub fn new(app: &'a R, denom: &'a T) -> Self {
-        Self { app, denom }
+        Self {
+            app,
+            denom,
+            last_events: vec![],
+        }
     }
 
     fn instantiate<S: ::prost::Message + Default>(
@@ -82,25 +82,17 @@ impl<'a, R: Runner<'a> + Querier, T: VaultToken + Clone> TokenRobot<'a, R, T> {
         signer: &SigningAccount,
         recipient: &str,
         amount: Uint128,
-    ) -> (Self, ExecuteResponse<S>) {
+    ) -> Self {
         let mut deps = mock_dependencies();
         let env = mock_env_with_address(deps.as_ref(), &signer.address());
 
         let recipient = deps.api.addr_validate(recipient).unwrap();
-        let sub_messages = self
-            .denom
-            .mint(deps.as_mut(), &env, &recipient, amount)
-            .unwrap()
-            .messages;
-
-        let cosmos_msgs: Vec<CosmosMsg> = sub_messages.into_iter().map(|x| x.msg).collect();
-
-        let res = self
-            .app
-            .execute_cosmos_msgs::<S>(&cosmos_msgs, signer)
-            .unwrap();
-
-        (self, res)
+        self.execute_response(
+            signer,
+            self.denom
+                .mint(deps.as_mut(), &env, &recipient, amount)
+                .unwrap(),
+        )
     }
 
     fn burn<S: ::prost::Message + Default>(
@@ -137,6 +129,40 @@ impl<'a, R: Runner<'a> + Querier, T: VaultToken + Clone> TokenRobot<'a, R, T> {
         let deps = RunnerMockDeps::new(self.app);
 
         self.denom.query_total_supply(deps.as_ref()).unwrap()
+    }
+
+    fn execute_response(mut self, signer: &SigningAccount, res: Response) -> Self {
+        let cosmos_msgs: Vec<CosmosMsg> = res.messages.into_iter().map(|x| x.msg).collect();
+
+        let execute_res = self
+            .app
+            .execute_cosmos_msgs::<S>(&cosmos_msgs, signer)
+            .unwrap();
+
+        self.last_events = execute_res.events;
+
+        self
+    }
+
+    fn assert_event(&self, expected_type: &str, expected_attributes: Vec<Attribute>) -> Self {
+        let mut responses = self.last_events.to_vec();
+        responses.reverse();
+
+        for res in responses.iter() {
+            if let Some(event) = res.events.iter().find(|e| e.ty == expected_type) {
+                if event.attributes.len() == expected_attributes.len() {
+                    for (attr, expected_attr) in
+                        zip(event.attributes.iter(), expected.attributes.iter())
+                    {
+                        if attr.key != expected_attr.key || attr.value != expected_attr.value {
+                            continue;
+                        }
+                    }
+                }
+            }
+        }
+
+        assert_eq!(events, expected);
     }
 }
 
@@ -184,41 +210,25 @@ fn mint(signer_idx: usize, amount: Uint128) {
     let recipient = &accs[1];
     let denom = OsmosisDenom::new(creator.address(), SUBDENOM.to_string());
 
-    let (_, mint_res) = TokenRobot::new(&app, &denom)
+    TokenRobot::new(&app, &denom)
         .instantiate::<MsgCreateDenomResponse>(creator)
         .0
-        .mint::<MsgMintResponse>(signer, &recipient.address(), amount);
-
-    let mint_event = mint_res
-        .events
-        .clone()
-        .into_iter()
-        .filter(|r| r.ty == "tf_mint")
-        .collect::<Vec<Event>>();
-
-    let expected_event = Event::new("tf_mint".to_string()).add_attributes(vec![
-        attr("mint_to_address", creator.address()),
-        attr("amount", format!("{}{}", amount, denom)),
-    ]);
-
-    // Check that the mint token event is emitted
-    assert_eq!(mint_event.len(), 1);
-    assert_eq!(mint_event[0], expected_event);
-
-    let transfer_events = mint_res
-        .events
-        .into_iter()
-        .filter(|r| r.ty == "transfer")
-        .collect::<Vec<Event>>();
-
-    let expected_event = Event::new("transfer".to_string()).add_attributes(vec![
-        attr("recipient", recipient.address()),
-        attr("sender", creator.address()),
-        attr("amount", format!("{}{}", amount, denom)),
-    ]);
-
-    // The last transfer event performs the transfer from creator to recipient
-    assert_eq!(transfer_events.last().unwrap(), &expected_event);
+        .mint::<MsgMintResponse>(signer, &recipient.address(), amount)
+        .assert_event(
+            "tf_mint",
+            vec![
+                attr("mint_to_address", creator.address()),
+                attr("amount", format!("{}{}", amount, denom)),
+            ],
+        )
+        .assert_event(
+            "transfer",
+            vec![
+                attr("recipient", recipient.address()),
+                attr("sender", creator.address()),
+                attr("amount", format!("{}{}", amount, denom)),
+            ],
+        );
 }
 
 #[test_case(0, 0, Uint128::from(1000000u128) ; "executed by owner")]
@@ -236,7 +246,6 @@ fn burn(signer_idx: usize, recipient_idx: usize, amount: Uint128) {
         .instantiate::<MsgCreateDenomResponse>(creator)
         .0
         .mint::<MsgMintResponse>(creator, &recipient.address(), Uint128::from(1000000u128))
-        .0
         .burn::<MsgBurnResponse>(signer, amount);
 
     let burn_event = burn_res
@@ -267,8 +276,7 @@ fn query(query: usize) {
     let robot = TokenRobot::new(&app, &denom)
         .instantiate::<MsgCreateDenomResponse>(creator)
         .0
-        .mint::<MsgMintResponse>(creator, &recipient.address(), amount)
-        .0;
+        .mint::<MsgMintResponse>(creator, &recipient.address(), amount);
 
     let query_result = match query {
         0 => robot.query_total_supply(),
