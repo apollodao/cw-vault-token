@@ -1,19 +1,19 @@
-use std::marker::PhantomData;
+
 
 use cosmwasm_std::testing::{mock_dependencies, mock_env, MockApi, MockStorage};
 use cosmwasm_std::{
-    attr, Api, BlockInfo, Coin, ContractInfo, CosmosMsg, CustomQuery, Deps, DepsMut, Empty, Env,
-    Event, MemoryStorage, MessageInfo, OwnedDeps, Querier, QuerierWrapper, Storage, Timestamp,
+    attr, Api, Coin, CosmosMsg, Deps, Empty, Env,
+    Event, Querier, QuerierWrapper,
     Uint128,
 };
 
-use cw_it::mock_api::OsmosisMockApi;
+
 
 use cw_vault_token::osmosis::OsmosisDenom;
 use cw_vault_token::{Burn, Instantiate, Mint, VaultToken};
 
-use osmosis_testing::cosmrs::proto::prost;
-use osmosis_testing::cosmrs::Any;
+
+
 use osmosis_testing::osmosis_std::types::osmosis::tokenfactory::v1beta1::{
     MsgBurnResponse, MsgCreateDenomResponse, MsgMintResponse,
 };

@@ -206,7 +206,7 @@ mod test {
         };
         let info = MessageInfo {
             sender: Addr::unchecked(SENDER),
-            funds: vec![sent_coin.clone()],
+            funds: vec![sent_coin],
         };
 
         // Try to receive more than was sent
