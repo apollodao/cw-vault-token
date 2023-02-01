@@ -2,7 +2,7 @@ use crate::{Burn, CwTokenResponse, CwTokenResult, Instantiate, Mint, Receive, Va
 
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
-    Addr, BankMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, Event, MessageInfo, Response,
+    attr, Addr, BankMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, Event, MessageInfo, Response,
     StdError, StdResult, Uint128,
 };
 use osmosis_std::types::cosmos::bank::v1beta1::BankQuerier;
@@ -98,28 +98,44 @@ impl Mint for OsmosisDenom {
         })
         .into();
 
-        Ok(Response::new().add_messages(vec![
-            mint_msg,
-            CosmosMsg::Bank(BankMsg::Send {
-                to_address: recipient.to_string(),
-                amount: vec![Coin {
-                    denom: self.to_string(),
-                    amount,
-                }],
-            }),
-        ]))
+        let event = Event::new("apollo/cw-vault-token/osmosis").add_attributes(vec![
+            attr("action", "mint"),
+            attr("denom", self.to_string()),
+            attr("amount", amount.to_string()),
+            attr("recipient", recipient.to_string()),
+        ]);
+
+        Ok(Response::new()
+            .add_messages(vec![
+                mint_msg,
+                CosmosMsg::Bank(BankMsg::Send {
+                    to_address: recipient.to_string(),
+                    amount: vec![Coin {
+                        denom: self.to_string(),
+                        amount,
+                    }],
+                }),
+            ])
+            .add_event(event))
     }
 }
 
 impl Burn for OsmosisDenom {
     fn burn(&self, _deps: DepsMut, env: &Env, amount: Uint128) -> CwTokenResponse {
-        Ok(Response::new().add_message(MsgBurn {
-            amount: Some(CoinMsg {
-                denom: self.to_string(),
-                amount: amount.to_string(),
-            }),
-            sender: env.contract.address.to_string(),
-        }))
+        let event = Event::new("apollo/cw-vault-token/osmosis").add_attributes(vec![
+            attr("action", "burn"),
+            attr("denom", self.to_string()),
+            attr("amount", amount.to_string()),
+        ]);
+        Ok(Response::new()
+            .add_message(MsgBurn {
+                amount: Some(CoinMsg {
+                    denom: self.to_string(),
+                    amount: amount.to_string(),
+                }),
+                sender: env.contract.address.to_string(),
+            })
+            .add_event(event))
     }
 }
 

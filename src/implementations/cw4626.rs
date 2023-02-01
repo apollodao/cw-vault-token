@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
-    attr, from_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError,
+    attr, from_binary, Addr, Binary, Deps, DepsMut, Env, Event, MessageInfo, Response, StdError,
     StdResult, Uint128,
 };
 use cw20::MarketingInfoResponse;
@@ -107,10 +107,14 @@ impl Mint for Cw4626 {
             |balance: Option<Uint128>| -> StdResult<_> { Ok(balance.unwrap_or_default() + amount) },
         )?;
 
-        let res = Response::new()
-            .add_attribute("action", "mint")
-            .add_attribute("to", recipient)
-            .add_attribute("amount", amount);
+        let event = Event::new("apollo/cw-vault-token/cw4626").add_attributes(vec![
+            attr("action", "mint"),
+            attr("vault_token_address", self.to_string()),
+            attr("amount", amount.to_string()),
+            attr("recipient", recipient),
+        ]);
+
+        let res = Response::new().add_event(event);
         Ok(res)
     }
 }
@@ -131,8 +135,13 @@ impl Burn for Cw4626 {
             Ok(meta)
         })?;
 
-        let res =
-            Response::new().add_attributes(vec![attr("action", "burn"), attr("amount", amount)]);
+        let event = Event::new("apollo/cw-vault-token/cw4626").add_attributes(vec![
+            attr("action", "burn"),
+            attr("vault_token_address", self.to_string()),
+            attr("amount", amount.to_string()),
+        ]);
+
+        let res = Response::new().add_event(event);
         Ok(res)
     }
 }
@@ -198,7 +207,14 @@ impl Instantiate for Cw4626 {
             MARKETING_INFO.save(deps.storage, &data)?;
         }
 
-        Ok(Response::default())
+        let event = Event::new("apollo/cw-vault-token/cw4626").add_attributes(vec![
+            attr("action", "instantiate"),
+            attr("name", data.name),
+            attr("symbol", data.symbol),
+            attr("decimals", data.decimals.to_string()),
+        ]);
+
+        Ok(Response::default().add_event(event))
     }
 }
 
