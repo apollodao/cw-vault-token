@@ -25,6 +25,5 @@ cw-utils = { version = "0.16" }
 [dev-dependencies]
 osmosis-testing = { git = "https://github.com/apollodao/osmosis-rust.git", branch = "osmosis-v13" }
 cw-it = { git = "https://github.com/apollodao/cw-it" }
-cw-dex = { git = "https://github.com/apollodao/cw-dex", features = ["osmosis", "astroport"] }
 prost = "0.11.0"
 test-case = "2.2.2"
