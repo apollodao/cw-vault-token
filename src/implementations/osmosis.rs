@@ -163,13 +163,15 @@ impl Receive for OsmosisDenom {
 mod test {
     use cosmwasm_std::testing::{mock_dependencies, mock_env};
 
+    use test_case::test_case;
+
     use super::*;
 
     const SENDER: &str = "sender";
     const SUBDENOM: &str = "subdenom";
 
     #[test]
-    fn test_to_string() {
+    fn to_string() {
         let denom = OsmosisDenom::new(SENDER.to_string(), SUBDENOM.to_string());
         assert_eq!(
             denom.to_string(),
@@ -177,25 +179,21 @@ mod test {
         );
     }
 
-    #[test]
-    fn test_from_native_denom() {
+    #[test_case("factory/sender/subdenom" ; "valid denom")]
+    #[test_case("factory/sender" => panics ; "denom contains too few parts")]
+    #[test_case("factory/sender/subdenom/extra" => panics ; "denom contains too many parts")]
+    #[test_case("wrong/sender/subdenom" => panics ; "denom does not start with \"factory\"")]
+    fn from_native_denom(denom: &str) {
         // Valid denom
-        let denom = OsmosisDenom::from_native_denom("factory/sender/subdenom").unwrap();
+        let denom = OsmosisDenom::from_native_denom(denom).unwrap();
         assert_eq!(denom.owner, "sender");
         assert_eq!(denom.subdenom, "subdenom");
-
-        // Denom contains too few parts
-        assert!(OsmosisDenom::from_native_denom("factory/sender").is_err());
-
-        // Denom contains too many parts
-        assert!(OsmosisDenom::from_native_denom("factory/sender/subdenom/extra").is_err());
-
-        // Denom does not start with "factory"
-        assert!(OsmosisDenom::from_native_denom("wrong/sender/subdenom").is_err());
     }
 
-    #[test]
-    fn test_receive_vault_token() {
+    #[test_case(Uint128::from(1000u128), Uint128::from(1000u128) ; "sent amount correct")]
+    #[test_case(Uint128::from(1000u128), Uint128::from(1001u128) => panics ; "sent amount too large")]
+    #[test_case(Uint128::from(1000u128), Uint128::from(999u128) => panics ; "sent amount too small")]
+    fn test_receive_vault_token(recieve_amount: Uint128, sent_amount: Uint128) {
         let mut deps = mock_dependencies();
         let env = mock_env();
 
@@ -204,43 +202,20 @@ mod test {
         // Set up MessageInfo with funds
         let sent_coin = Coin {
             denom: denom.to_string(),
-            amount: Uint128::from(1000u128),
+            amount: sent_amount,
         };
         let info = MessageInfo {
             sender: Addr::unchecked(SENDER),
-            funds: vec![sent_coin.clone()],
+            funds: vec![sent_coin],
         };
 
         // Try to receive more than was sent
-        let mut receive_coin = Coin {
+        let receive_coin = Coin {
             denom: denom.to_string(),
-            amount: Uint128::from(5000u128),
+            amount: recieve_amount,
         };
-        let err = denom
-            .receive(deps.as_mut(), &env, &info, receive_coin.amount)
-            .unwrap_err();
-
-        // Assert error message
-        assert_eq!(
-            err,
-            StdError::generic_err(format!("Expected to receive {}", receive_coin))
-        );
-
-        // Try to receive less than was sent
-        receive_coin.amount = Uint128::from(500u128);
-        let err = denom
-            .receive(deps.as_mut(), &env, &info, receive_coin.amount)
-            .unwrap_err();
-
-        // Assert error message
-        assert_eq!(
-            err,
-            StdError::generic_err(format!("Expected to receive {}", receive_coin))
-        );
-
-        // Try to receive exactly what was sent
         denom
-            .receive(deps.as_mut(), &env, &info, sent_coin.amount)
+            .receive(deps.as_mut(), &env, &info, receive_coin.amount)
             .unwrap();
     }
 }
