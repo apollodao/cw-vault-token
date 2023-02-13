@@ -35,4 +35,4 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: tarpaulin
-          args: --workspace --timeout 120
+          args: --timeout 120
