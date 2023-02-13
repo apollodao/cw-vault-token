@@ -1,5 +1,7 @@
-name: Test
-on: [pull_request]
+name: Test Suite
+on:
+  pull_request:
+  workflow_dispatch:
 
 env:
   RUSTFLAGS: -D warnings
@@ -10,19 +12,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.59.0
+          toolchain: 1.65.0
           target: wasm32-unknown-unknown
           override: true
 
-      - name: Run unit tests
+      - name: Run tests
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --locked
+          args: --locked --lib
         env:
           RUST_BACKTRACE: 1
