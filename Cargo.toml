@@ -19,6 +19,7 @@ cw20-base = { version = "1.0.1", features = ["library"] }
 thiserror = "1.0.38"
 cosmwasm-schema = "1.2.1"
 cw-utils = "1.0.1"
+cw-storage-plus = "1.0.1"
 
 [dev-dependencies]
 osmosis-testing = { git = "https://github.com/apollodao/osmosis-rust.git", branch = "osmosis-v13" }
