@@ -1,4 +1,4 @@
-use cosmwasm_std::{Response, StdError};
+use cosmwasm_std::{OverflowError, Response, StdError};
 use cw20_base::ContractError as Cw20ContractError;
 use cw_utils::ParseReplyError;
 use thiserror::Error;
@@ -21,6 +21,10 @@ pub enum CwTokenError {
     /// CW20 Contract
     #[error("{0}")]
     Cw20ContractError(#[from] Cw20ContractError),
+
+    /// Overflow error
+    #[error("{0}")]
+    Overflow(#[from] OverflowError),
 }
 
 impl From<CwTokenError> for StdError {
