@@ -179,26 +179,3 @@ fn burn(signer_idx: usize, recipient_idx: usize, amount: Uint128) {
             ],
         );
 }
-
-// Tests disabled because Querier no longer implemented for OsmosisTestApp
-// #[test_case(0 ; "total supply")]
-// #[test_case(1 ; "balance")]
-// fn query(query: usize) {
-//     let (app, accs) = setup();
-//     let creator = &accs[0];
-//     let recipient = &accs[1];
-//     let amount = Uint128::from(1000000u128);
-//     let denom = OsmosisDenom::new(creator.address(), SUBDENOM.to_string());
-
-//     let robot = TokenRobot::new(&app, &denom)
-//         .instantiate::<MsgCreateDenomResponse>(creator)
-//         .mint::<MsgMintResponse>(creator, &recipient.address(), amount);
-
-//     let query_result = match query {
-//         0 => robot.query_total_supply(),
-//         1 => robot.query_balance(&recipient.address()),
-//         _ => panic!("invalid query"),
-//     };
-
-//     assert_eq!(query_result, amount);
-// }
