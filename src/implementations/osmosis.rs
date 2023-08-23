@@ -2,7 +2,7 @@ use crate::{Burn, CwTokenResponse, CwTokenResult, Instantiate, Mint, Receive, Va
 
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{
-    attr, Addr, BankMsg, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, Event, MessageInfo, Response,
+    attr, Addr, Binary, Coin, CosmosMsg, Deps, DepsMut, Env, Event, MessageInfo, Response,
     StdError, StdResult, Uint128,
 };
 use osmosis_std::types::cosmos::bank::v1beta1::BankQuerier;
@@ -95,6 +95,7 @@ impl Mint for OsmosisDenom {
                 amount: amount.to_string(),
             }),
             sender: env.contract.address.to_string(),
+            mint_to_address: recipient.to_string(),
         })
         .into();
 
@@ -105,18 +106,7 @@ impl Mint for OsmosisDenom {
             attr("recipient", recipient.to_string()),
         ]);
 
-        Ok(Response::new()
-            .add_messages(vec![
-                mint_msg,
-                CosmosMsg::Bank(BankMsg::Send {
-                    to_address: recipient.to_string(),
-                    amount: vec![Coin {
-                        denom: self.to_string(),
-                        amount,
-                    }],
-                }),
-            ])
-            .add_event(event))
+        Ok(Response::new().add_message(mint_msg).add_event(event))
     }
 }
 
@@ -134,6 +124,7 @@ impl Burn for OsmosisDenom {
                     amount: amount.to_string(),
                 }),
                 sender: env.contract.address.to_string(),
+                burn_from_address: env.contract.address.to_string(),
             })
             .add_event(event))
     }
