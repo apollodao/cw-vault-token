@@ -1,36 +1,63 @@
+[env]
+CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
+# If you bump this version, verify RUST_VERSION correctness
+RUST_OPTIMIZER_VERSION = "0.14.0"
+# Use rust version from rust-optimizer Dockerfile (see https://github.com/CosmWasm/rust-optimizer/blob/main/Dockerfile#L1)
+# to be sure that we compile / test against the same version
+RUST_VERSION = "1.71.0"
+NIGHTLY_VERSION = "nightly-2023-07-18"
+
+[tasks.install-stable]
+script = '''
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${RUST_VERSION}
+rustup target add wasm32-unknown-unknown --toolchain ${RUST_VERSION}
+rustup component add rustfmt --toolchain ${RUST_VERSION}
+rustup component add clippy --toolchain ${RUST_VERSION}
+'''
+
+[tasks.install-nightly]
+script = '''
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${NIGHTLY_VERSION}
+rustup target add wasm32-unknown-unknown --toolchain ${NIGHTLY_VERSION}
+rustup component add rustfmt --toolchain ${NIGHTLY_VERSION}
+rustup component add clippy --toolchain ${NIGHTLY_VERSION}
+'''
+
 [tasks.format]
-toolchain = "nightly"
+toolchain = "${NIGHTLY_VERSION}"
 install_crate = { crate_name = "rustfmt-nightly", rustup_component_name = "rustfmt-preview", binary = "rustfmt", test_arg = "--help" }
 command = "cargo"
-args = ["fmt", "--", "--emit=files","--verbose"]
-
-# This task requires the `cargo-udeps` package: https://crates.io/crates/cargo-udeps
-[tasks.udeps]
-toolchain = "nightly"
+args = ["fmt", "--all", "--", "--emit=files","--verbose"]
+[tasks.format-check]
+toolchain = "${NIGHTLY_VERSION}"
+install_crate = { crate_name = "rustfmt-nightly", rustup_component_name = "rustfmt-preview", binary = "rustfmt", test_arg = "--help" }
 command = "cargo"
-args = ["udeps"]
+args = ["fmt", "--all", "--","--verbose", "--check"]
 
 [tasks.deny]
+toolchain = "${RUST_VERSION}"
 command = "cargo"
 args = ["deny", "check"]
 
-[tasks.clippy]
+[tasks.check]
+toolchain = "${RUST_VERSION}"
 command = "cargo"
-args = ["clippy","--","-D","warnings"]
+args = ["check"]
 
-# This task requires the `cargo-tarpaulin` package: https://crates.io/crates/cargo-tarpaulin
-[tasks.cov]
+[tasks.clippy-check]
+toolchain = "${RUST_VERSION}"
 command = "cargo"
-args = [
-    "tarpaulin",
-    "--ignore-tests",
-    "-o",
-    "Lcov",
-    "--output-dir",
-    "target/tarpaulin",
-]
+args = ["clippy","--all-features","--","-D","warnings"]
+[tasks.clippy-fix]
+toolchain = "${RUST_VERSION}"
+command = "cargo"
+args = ["clippy","--fix","--allow-staged", "--allow-dirty", "--","-D","warnings"]
+
+[tasks.todo-check]
+script = { file = "${CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY}/scripts/todo-lint.sh", absolute_path = true }
 
 [tasks.docs]
+toolchain = "${RUST_VERSION}"
 command = "cargo"
 args = [
     "doc",
@@ -39,7 +66,6 @@ args = [
     "--color",
     "never",
     "--no-deps",
-    "--open",
     "--workspace",
     "--exclude",
     "'cosmwasm*'",
@@ -49,9 +75,34 @@ args = [
 ]
 
 # This task requires the `cargo-machete` package: https://crates.io/crates/cargo-machete
-[tasks.machete]
+[tasks.machete-check]
+toolchain = "${NIGHTLY_VERSION}"
 command = "cargo"
 args = ["machete"]
+[tasks.machete-fix]
+command = "cargo"
+args = ["machete", "--fix"]
+
+
+# Run unit tests
+[tasks.unit-test]
+toolchain = "${RUST_VERSION}"
+command = "cargo"
+args = [
+    "test",
+    "--lib"
+]
+
+# Run integration tests
+[tasks.integration-test]
+cwd = "${CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY}"
+toolchain = "${RUST_VERSION}"
+command = "cargo"
+args = [
+    "test",
+    "--test",
+    "*",
+]
 
 # Run automatically on "cargo make". This is the default task. We keep all the
 # default tasks and add our own "custom" task.
@@ -60,8 +111,9 @@ run_task = "custom-default"
 
 # Custom tasks to run on "cargo make"
 [tasks.custom-default]
-dependencies = ["deny", "clippy", "docs", "machete"]
+dependencies = ["format", "clippy-fix", "deny", "machete-fix", "unit-test", "integration-test"]
+
 
 # Docs and Test coverage are not run by default. Can run all with "cargo make all".
 [tasks.all]
-dependencies = ["dev-test-flow", "custom-default", "cov"]
+dependencies = ["dev-test-flow"]

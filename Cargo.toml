@@ -1,7 +1,7 @@
 [package]
 name = "cw-vault-token"
 description = " An abstraction for different ways of implementing a vault token."
-version = "0.1.0"
+version = "0.2.0-rc.1"
 authors = ["Apollo Devs <shared@apollo.farm>"]
 edition = "2021"
 repository = "https://github.com/apollodao/cw-vault-token/"
@@ -12,7 +12,7 @@ documentation = "https://docs.rs/cw-vault-token/"                               
 keywords = ["blockchain", "cosmos", "library", "cosmwasm"]
 
 [dependencies]
-osmosis-std = "0.14.0"
+osmosis-std = "0.17.0-rc0"
 cosmwasm-std = { version = "1.2.1", features = ["stargate"] }
 cw20 = "1.0.1"
 cw20-base = { version = "1.0.1", features = ["library"] }
@@ -21,6 +21,6 @@ cosmwasm-schema = "1.2.1"
 cw-utils = "1.0.1"
 
 [dev-dependencies]
-osmosis-testing = { git = "https://github.com/apollodao/osmosis-rust.git", branch = "osmosis-v13" }
+cw-it = {  version = "0.2.0-rc.2", features = ["osmosis-test-tube" ]}
 prost = "0.11.0"
 test-case = "3.0.0"

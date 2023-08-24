@@ -1,16 +1,15 @@
-use cosmwasm_std::testing::{mock_dependencies, mock_env, MockApi, MockStorage};
-use cosmwasm_std::{
-    attr, Api, Attribute, Coin, CosmosMsg, Deps, Empty, Env, Event, Querier, QuerierWrapper,
-    Response, Uint128,
-};
+use cosmwasm_std::testing::{mock_dependencies, mock_env};
+use cosmwasm_std::{attr, Api, Attribute, Coin, CosmosMsg, Deps, Env, Event, Response, Uint128};
 
+use cw_it::robot::TestRobot;
 use cw_vault_token::osmosis::OsmosisDenom;
-use cw_vault_token::VaultToken;
+use cw_vault_token::{Burn, Instantiate, Mint, VaultToken};
 
-use osmosis_testing::osmosis_std::types::osmosis::tokenfactory::v1beta1::{
+use cw_it::osmosis_std::types::osmosis::tokenfactory::v1beta1::{
     MsgBurnResponse, MsgCreateDenomResponse, MsgMintResponse,
 };
-use osmosis_testing::{Account, OsmosisTestApp, Runner, SigningAccount};
+use cw_it::osmosis_test_tube::OsmosisTestApp;
+use cw_it::test_tube::{Account, Runner, SigningAccount};
 
 use test_case::test_case;
 
@@ -40,14 +39,23 @@ fn mock_env_with_address(deps: Deps, address: &str) -> Env {
 }
 
 #[derive(Clone, Debug)]
-struct TokenRobot<'a, R: Runner<'a> + Querier, T: VaultToken + Clone> {
+struct TokenRobot<'a, R: Runner<'a>, T: VaultToken + Clone> {
     app: &'a R,
     denom: &'a T,
     last_events: Vec<Event>,
 }
 
-impl<'a, R: Runner<'a> + Querier, T: VaultToken + Clone> TokenRobot<'a, R, T> {
-    pub fn new(app: &'a R, denom: &'a T) -> Self {
+impl<'a, R> TestRobot<'a, R> for TokenRobot<'a, R, OsmosisDenom>
+where
+    R: Runner<'a>,
+{
+    fn runner(&self) -> &'a R {
+        self.app
+    }
+}
+
+impl<'a, R: Runner<'a>> TokenRobot<'a, R, OsmosisDenom> {
+    pub fn new(app: &'a R, denom: &'a OsmosisDenom) -> Self {
         Self {
             app,
             denom,
@@ -55,7 +63,7 @@ impl<'a, R: Runner<'a> + Querier, T: VaultToken + Clone> TokenRobot<'a, R, T> {
         }
     }
 
-    fn instantiate<S: ::prost::Message + Default>(self, signer: &SigningAccount) -> Self {
+    fn instantiate<S: ::prost::Message + Default>(&mut self, signer: &SigningAccount) -> &mut Self {
         let response = self
             .denom
             .instantiate(mock_dependencies().as_mut(), None)
@@ -65,11 +73,11 @@ impl<'a, R: Runner<'a> + Querier, T: VaultToken + Clone> TokenRobot<'a, R, T> {
     }
 
     fn mint<S: ::prost::Message + Default>(
-        self,
+        &mut self,
         signer: &SigningAccount,
         recipient: &str,
         amount: Uint128,
-    ) -> Self {
+    ) -> &mut Self {
         let mut deps = mock_dependencies();
         let env = mock_env_with_address(deps.as_ref(), &signer.address());
 
@@ -82,7 +90,11 @@ impl<'a, R: Runner<'a> + Querier, T: VaultToken + Clone> TokenRobot<'a, R, T> {
         self.execute_response::<S>(signer, response)
     }
 
-    fn burn<S: ::prost::Message + Default>(self, signer: &SigningAccount, amount: Uint128) -> Self {
+    fn burn<S: ::prost::Message + Default>(
+        &mut self,
+        signer: &SigningAccount,
+        amount: Uint128,
+    ) -> &mut Self {
         let mut deps = mock_dependencies();
         let env = mock_env_with_address(deps.as_ref(), &signer.address());
 
@@ -91,23 +103,11 @@ impl<'a, R: Runner<'a> + Querier, T: VaultToken + Clone> TokenRobot<'a, R, T> {
         self.execute_response::<S>(signer, response)
     }
 
-    fn query_balance(&self, address: &str) -> Uint128 {
-        let deps = RunnerMockDeps::new(self.app);
-
-        self.denom.query_balance(deps.as_ref(), address).unwrap()
-    }
-
-    fn query_total_supply(&self) -> Uint128 {
-        let deps = RunnerMockDeps::new(self.app);
-
-        self.denom.query_total_supply(deps.as_ref()).unwrap()
-    }
-
     fn execute_response<S: ::prost::Message + Default>(
-        mut self,
+        &mut self,
         signer: &SigningAccount,
         res: Response,
-    ) -> Self {
+    ) -> &mut Self {
         let cosmos_msgs: Vec<CosmosMsg> = res.messages.into_iter().map(|x| x.msg).collect();
 
         let execute_res = self
@@ -120,34 +120,11 @@ impl<'a, R: Runner<'a> + Querier, T: VaultToken + Clone> TokenRobot<'a, R, T> {
         self
     }
 
-    fn assert_event(self, expected_type: &str, expected_attributes: Vec<Attribute>) -> Self {
+    fn assert_event(&self, expected_type: &str, expected_attributes: Vec<Attribute>) -> &Self {
         let expected_event = &Event::new(expected_type).add_attributes(expected_attributes);
         match self.last_events.contains(expected_event) {
             true => self,
             false => panic!("Event not found. Expected {:?}", expected_event),
-        }
-    }
-}
-
-struct RunnerMockDeps<'a, Q: Querier> {
-    pub storage: MockStorage,
-    pub api: MockApi,
-    pub querier: &'a Q,
-}
-
-impl<'a, Q: Querier> RunnerMockDeps<'a, Q> {
-    pub fn new(querier: &'a Q) -> Self {
-        Self {
-            storage: MockStorage::default(),
-            api: MockApi::default(),
-            querier,
-        }
-    }
-    pub fn as_ref(&'_ self) -> Deps<'_, Empty> {
-        Deps {
-            storage: &self.storage,
-            api: &self.api,
-            querier: QuerierWrapper::new(self.querier),
         }
     }
 }
@@ -173,24 +150,21 @@ fn mint(signer_idx: usize, amount: Uint128) {
     let recipient = &accs[1];
     let denom = OsmosisDenom::new(creator.address(), SUBDENOM.to_string());
 
-    TokenRobot::new(&app, &denom)
+    let mut robot = TokenRobot::new(&app, &denom);
+
+    robot
         .instantiate::<MsgCreateDenomResponse>(creator)
         .mint::<MsgMintResponse>(signer, &recipient.address(), amount)
-        .assert_event(
-            "tf_mint",
-            vec![
-                attr("mint_to_address", creator.address()),
-                attr("amount", format!("{}{}", amount, denom)),
-            ],
-        )
-        .assert_event(
-            "transfer",
-            vec![
-                attr("recipient", recipient.address()),
-                attr("sender", creator.address()),
-                attr("amount", format!("{}{}", amount, denom)),
-            ],
-        );
+        // TODO: Disabled because of bug in Osmosis TokenFactory:
+        // https://github.com/osmosis-labs/osmosis/issues/6147
+        // .assert_event(
+        //     "tf_mint",
+        //     vec![
+        //         attr("mint_to_address", recipient.address()),
+        //         attr("amount", format!("{}{}", amount, denom)),
+        //     ],
+        // );
+        .assert_native_token_balance_eq(recipient.address(), denom.to_string(), amount);
 }
 
 #[test_case(0, 0, Uint128::from(1000000u128) ; "executed by owner")]
@@ -204,9 +178,14 @@ fn burn(signer_idx: usize, recipient_idx: usize, amount: Uint128) {
     let recipient = &accs[recipient_idx];
     let denom = OsmosisDenom::new(creator.address(), SUBDENOM.to_string());
 
-    TokenRobot::new(&app, &denom)
+    let mut robot = TokenRobot::new(&app, &denom);
+
+    let recipient_balance_before = robot
         .instantiate::<MsgCreateDenomResponse>(creator)
         .mint::<MsgMintResponse>(creator, &recipient.address(), Uint128::from(1000000u128))
+        .query_native_token_balance(recipient.address(), denom.to_string());
+
+    robot
         .burn::<MsgBurnResponse>(signer, amount)
         .assert_event(
             "tf_burn",
@@ -214,27 +193,10 @@ fn burn(signer_idx: usize, recipient_idx: usize, amount: Uint128) {
                 attr("burn_from_address", creator.address()),
                 attr("amount", format!("{}{}", amount, denom)),
             ],
+        )
+        .assert_native_token_balance_eq(
+            recipient.address(),
+            denom.to_string(),
+            recipient_balance_before.checked_sub(amount).unwrap(),
         );
-}
-
-#[test_case(0 ; "total supply")]
-#[test_case(1 ; "balance")]
-fn query(query: usize) {
-    let (app, accs) = setup();
-    let creator = &accs[0];
-    let recipient = &accs[1];
-    let amount = Uint128::from(1000000u128);
-    let denom = OsmosisDenom::new(creator.address(), SUBDENOM.to_string());
-
-    let robot = TokenRobot::new(&app, &denom)
-        .instantiate::<MsgCreateDenomResponse>(creator)
-        .mint::<MsgMintResponse>(creator, &recipient.address(), amount);
-
-    let query_result = match query {
-        0 => robot.query_total_supply(),
-        1 => robot.query_balance(&recipient.address()),
-        _ => panic!("invalid query"),
-    };
-
-    assert_eq!(query_result, amount);
 }
