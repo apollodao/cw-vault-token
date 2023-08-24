@@ -367,7 +367,7 @@ mod test {
 
         // Assert that balance query is correct
         let balance = cw4626
-            .query_balance(deps.as_ref(), &env.contract.address)
+            .query_balance(deps.as_ref(), env.contract.address)
             .unwrap();
         assert_eq!(balance, mint_amount);
     }

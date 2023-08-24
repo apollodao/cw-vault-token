@@ -35,7 +35,7 @@ pub fn test_with_osmosis_bindings() {
 
 pub fn test_instantiate<R>(
     _app: &R,
-    _accs: &Vec<SigningAccount>,
+    _accs: &[SigningAccount],
 ) -> (
     Cw4626,
     OwnedDeps<MemoryStorage, MockApi, MockQuerier<Empty>, Empty>,
@@ -71,7 +71,7 @@ where
     (cw4626, deps)
 }
 
-pub fn test_mint<R>(_app: &R, accs: &Vec<SigningAccount>, cw4626: &Cw4626, mut deps: DepsMut)
+pub fn test_mint<R>(_app: &R, accs: &[SigningAccount], cw4626: &Cw4626, mut deps: DepsMut)
 where
     R: for<'a> Runner<'a>,
 {
@@ -98,7 +98,7 @@ where
     assert_eq!(balance, Uint128::new(10000000));
 }
 
-pub fn test_burn<R>(_app: &R, accs: &Vec<SigningAccount>, cw4626: &Cw4626, mut deps: DepsMut)
+pub fn test_burn<R>(_app: &R, accs: &[SigningAccount], cw4626: &Cw4626, mut deps: DepsMut)
 where
     R: for<'a> Runner<'a>,
 {
@@ -124,7 +124,7 @@ where
     assert_eq!(balance, Uint128::new(9000000));
 }
 
-pub fn query_vault_supply<R>(_app: &R, _accs: &Vec<SigningAccount>, cw4626: &Cw4626, deps: DepsMut)
+pub fn query_vault_supply<R>(_app: &R, _accs: &[SigningAccount], cw4626: &Cw4626, deps: DepsMut)
 where
     R: for<'a> Runner<'a>,
 {
@@ -134,7 +134,7 @@ where
     assert_eq!(supply, Uint128::new(9000000));
 }
 
-pub fn query_balance<R>(_app: &R, accs: &Vec<SigningAccount>, cw4626: &Cw4626, deps: DepsMut)
+pub fn query_balance<R>(_app: &R, accs: &[SigningAccount], cw4626: &Cw4626, deps: DepsMut)
 where
     R: for<'a> Runner<'a>,
 {
